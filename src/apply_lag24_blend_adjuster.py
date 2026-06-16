@@ -14,6 +14,7 @@ for import_path in (SRC_DIR, ROOT_DIR):
         sys.path.append(import_path)
 
 from evaluate_neural_hybrid import calculate_metrics, save_evaluation_artifacts
+from prediction_limits import clip_price_forecast
 
 
 def load_predictions(output_dir, input_experiment):
@@ -204,7 +205,7 @@ def apply_lag24_blend_adjustment(predictions, args):
 
     adjusted = source.copy()
     adjusted[selected] = (1.0 - args.alpha) * source[selected] + args.alpha * lag[selected]
-    adjusted = np.clip(adjusted, 0.0, frame["price_cap"].to_numpy(dtype="float64"))
+    adjusted = clip_price_forecast(adjusted, frame["price_cap"].to_numpy(dtype="float64"))
 
     frame[args.output_col] = adjusted
     frame[f"{args.output_col}_applied"] = selected.astype("int64")

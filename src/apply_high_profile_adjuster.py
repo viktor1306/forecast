@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from evaluate_neural_hybrid import calculate_metrics, save_evaluation_artifacts
+from prediction_limits import clip_price_forecast
 
 
 def load_predictions(output_dir, input_experiment):
@@ -93,7 +94,7 @@ def add_high_profile_adjustment(
     adjusted[risk] = np.maximum(source[risk], (1.0 - blend) * source[risk] + blend * anchor[risk])
     frame[anchor_output_col] = anchor
     frame[flag_col] = risk.astype(int)
-    frame[output_col] = np.clip(adjusted, 0.0, caps)
+    frame[output_col] = clip_price_forecast(adjusted, caps)
     return frame
 
 

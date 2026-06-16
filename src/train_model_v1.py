@@ -21,6 +21,7 @@ if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 
 from price_caps import apply_price_caps_to_index
+from prediction_limits import clip_price_forecast
 
 # === НАЛАШТУВАННЯ ===
 warnings.filterwarnings('ignore')
@@ -611,7 +612,7 @@ def train_ensemble_component(df, train_size, features, target_col, script_dir, m
         
         if len(X_test_h) > 0:
             p_price = model.predict(X_test_h) * df.loc[X_test_h.index, 'price_cap'].values
-            pred_all.loc[X_test_h.index] = np.clip(p_price, 0, df.loc[X_test_h.index, 'price_cap'].values)
+            pred_all.loc[X_test_h.index] = clip_price_forecast(p_price, df.loc[X_test_h.index, 'price_cap'].values)
             
         print(".", end="", flush=True)
         

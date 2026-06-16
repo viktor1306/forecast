@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 from evaluate_neural_hybrid import calculate_metrics, save_evaluation_artifacts
+from prediction_limits import clip_price_series
 
 
 def load_member(output_dir, experiment_id):
@@ -45,7 +46,7 @@ def build_ensemble(output_dir, members, experiment_id, recent_policy="tree"):
     else:
         raise ValueError(f"Unsupported recent policy: {recent_policy}")
 
-    base["hybrid_guarded_pred"] = base["hybrid_guarded_pred"].clip(lower=0.0, upper=base["price_cap"])
+    base["hybrid_guarded_pred"] = clip_price_series(base["hybrid_guarded_pred"], base["price_cap"])
     predictions = base.reset_index().rename(columns={"index": "datetime"})
 
     artifacts = save_evaluation_artifacts(

@@ -14,6 +14,7 @@ for import_path in (SRC_DIR, ROOT_DIR):
         sys.path.append(import_path)
 
 from evaluate_neural_hybrid import calculate_metrics, save_evaluation_artifacts
+from prediction_limits import clip_price_forecast
 
 
 DEFAULT_SOURCE_BINS = "-1,50,250,500,1000,3000,7000,12000,1000000000"
@@ -175,7 +176,7 @@ def apply_group_bias_adjustment(predictions, args):
     source = frame[args.source_col].to_numpy(dtype="float64")
     adjusted = source.copy()
     adjusted[selected] = adjusted[selected] - args.beta * bias_signal[selected]
-    adjusted = np.clip(adjusted, 0.0, frame["price_cap"].to_numpy(dtype="float64"))
+    adjusted = clip_price_forecast(adjusted, frame["price_cap"].to_numpy(dtype="float64"))
 
     frame[args.output_col] = adjusted
     frame[f"{args.output_col}_applied"] = selected.astype("int64")

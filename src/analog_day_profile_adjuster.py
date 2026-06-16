@@ -14,6 +14,7 @@ for import_path in (SRC_DIR, ROOT_DIR):
         sys.path.append(import_path)
 
 from evaluate_neural_hybrid import calculate_metrics, save_evaluation_artifacts
+from prediction_limits import clip_price_forecast
 from rolling_origin_stacker import build_stacker_frame
 from rolling_origin_nonlinear_stacker import target_values, invert_prediction
 
@@ -271,7 +272,7 @@ def apply_analog_adjustment(predictions, args):
         adjusted = np.where(recent_mask, adjusted, source)
         applied = np.where(recent_mask, applied, 0)
 
-    frame[args.output_col] = np.clip(adjusted, 0.0, frame["price_cap"].to_numpy(dtype="float64"))
+    frame[args.output_col] = clip_price_forecast(adjusted, frame["price_cap"].to_numpy(dtype="float64"))
     frame[f"{args.output_col}_applied"] = applied
     frame[f"{args.output_col}_mean_analog_distance"] = distance_out
     return frame

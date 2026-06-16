@@ -13,6 +13,7 @@ if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 
 from price_caps import apply_price_caps_to_index
+from prediction_limits import clip_price_forecast
 from train_model_v1 import generate_features as shared_generate_features
 from daily_profile_calibrator import apply_daily_profile_calibration
 from recent_calibrator import (
@@ -389,7 +390,7 @@ def evaluate_models(custom_output_name=None):
              
         if sw > 0:
             p_price = (combined_ratio / sw) * caps
-            p_price = np.clip(p_price, 0, caps)
+            p_price = clip_price_forecast(p_price, caps)
             pred_all.loc[X_h.index] = p_price
 
     pred_all = pred_all.dropna().sort_index()

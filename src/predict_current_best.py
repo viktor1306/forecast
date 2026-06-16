@@ -20,6 +20,7 @@ from apply_candidate_blend_adjuster import apply_candidate_blend_adjustment
 from apply_group_bias_adjuster import apply_group_bias_adjustment
 from apply_hour_bias_adjuster import apply_hour_bias_adjustment
 from apply_lag24_blend_adjuster import apply_lag24_blend_adjustment
+from prediction_limits import MIN_MARKET_PRICE, clip_price_forecast
 
 
 SOURCE_COL = "analog_ratio_all_b012_k4_c050_pred"
@@ -1315,8 +1316,12 @@ def rows_from_source_debug(source_debug_csv, target_day):
             SOURCE_COL: pd.to_numeric(source["final_pred"], errors="coerce"),
         }
     )
+    rows[SOURCE_COL] = clip_price_forecast(rows[SOURCE_COL], rows["price_cap"])
     if "production_base_pred" in source.columns:
-        rows["production_base_pred"] = pd.to_numeric(source["production_base_pred"], errors="coerce")
+        rows["production_base_pred"] = clip_price_forecast(
+            pd.to_numeric(source["production_base_pred"], errors="coerce"),
+            rows["price_cap"],
+        )
     rows["forecast_source_note"] = f"{Path(source_debug_csv).name}.final_pred_as_{SOURCE_COL}"
     return rows
 
@@ -1330,6 +1335,8 @@ def apply_current_best_chain(history, target_rows):
 
 
 def save_forecast(day_frame, output_dir, date_iso):
+    day_frame = day_frame.copy()
+    day_frame[FINAL_COL] = clip_price_forecast(day_frame[FINAL_COL], day_frame["price_cap"])
     public = pd.DataFrame(
         {
             "Hour": day_frame["datetime"].dt.hour + 1,
@@ -1455,6 +1462,7 @@ def save_forecast(day_frame, output_dir, date_iso):
     plt.figure(figsize=(13, 6))
     plt.plot(public["Hour"], public["Predicted_Price"], marker="o", label="Current best forecast")
     plt.plot(public["Hour"], public["Price_Cap"], linestyle="--", alpha=0.5, label="Price cap")
+    plt.axhline(MIN_MARKET_PRICE, linestyle=":", alpha=0.5, color="gray", label="Price floor")
     plt.xticks(range(1, 25))
     plt.grid(True, alpha=0.25)
     plt.title(f"Current best forecast for {date_iso}")
@@ -1468,6 +1476,8 @@ def save_forecast(day_frame, output_dir, date_iso):
 
 
 def save_comparison(day_frame, output_dir, date_iso):
+    day_frame = day_frame.copy()
+    day_frame[FINAL_COL] = clip_price_forecast(day_frame[FINAL_COL], day_frame["price_cap"])
     actual_rows = day_frame.dropna(subset=["actual", FINAL_COL]).copy()
     if actual_rows.empty:
         return None

@@ -7,6 +7,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor, RandomForestRegressor
+from sklearn.neural_network import MLPRegressor
+from sklearn.preprocessing import RobustScaler
 
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(SRC_DIR)
@@ -15,6 +17,7 @@ for import_path in (SRC_DIR, ROOT_DIR):
         sys.path.append(import_path)
 
 from evaluate_neural_hybrid import calculate_metrics, save_evaluation_artifacts
+from prediction_limits import MIN_MARKET_PRICE, clip_price_forecast
 from rolling_origin_stacker import build_stacker_frame
 from train_neural_hybrid import finite_frame
 
@@ -66,6 +69,19 @@ def make_model(model_type, random_state, args):
             random_state=random_state,
             n_jobs=-1,
         )
+    if model_type == "mlp":
+        return MLPRegressor(
+            hidden_layer_sizes=parse_hidden_layers(args.hidden_layers),
+            activation=args.activation,
+            solver="adam",
+            alpha=args.mlp_alpha,
+            learning_rate_init=args.learning_rate,
+            max_iter=args.max_iter,
+            early_stopping=args.mlp_early_stopping,
+            validation_fraction=args.mlp_validation_fraction,
+            n_iter_no_change=args.mlp_n_iter_no_change,
+            random_state=random_state,
+        )
     raise ValueError(f"Unsupported model type: {model_type}")
 
 
@@ -73,11 +89,11 @@ def target_values(actual, source, target):
     if target == "resid":
         return actual - source
     if target == "ratio":
-        return actual / np.maximum(source, 1.0)
+        return np.maximum(actual, MIN_MARKET_PRICE) / np.maximum(source, MIN_MARKET_PRICE)
     if target == "logresid":
-        return np.log1p(np.clip(actual, 0.0, None)) - np.log1p(np.clip(source, 0.0, None))
+        return np.log1p(np.clip(actual, MIN_MARKET_PRICE, None)) - np.log1p(np.clip(source, MIN_MARKET_PRICE, None))
     if target == "log":
-        return np.log1p(np.clip(actual, 0.0, None))
+        return np.log1p(np.clip(actual, MIN_MARKET_PRICE, None))
     raise ValueError(f"Unsupported target: {target}")
 
 
@@ -85,15 +101,50 @@ def invert_prediction(source, raw_pred, target):
     if target == "resid":
         return source + raw_pred
     if target == "ratio":
-        return source * np.clip(raw_pred, 0.0, 3.0)
+        return np.maximum(source, MIN_MARKET_PRICE) * np.clip(raw_pred, 0.0, 3.0)
     if target == "logresid":
-        return np.expm1(np.log1p(np.clip(source, 0.0, None)) + raw_pred)
+        return np.expm1(np.log1p(np.clip(source, MIN_MARKET_PRICE, None)) + raw_pred)
     if target == "log":
         return np.expm1(raw_pred)
     raise ValueError(f"Unsupported target: {target}")
 
 
-def sample_weights(frame, train_mask, day, half_life_days, low_weight, high_weight, daytime_weight, evening_weight):
+def parse_hidden_layers(text):
+    values = [int(part.strip()) for part in str(text).split(",") if part.strip()]
+    if not values or any(value <= 0 for value in values):
+        raise ValueError(f"Unsupported hidden layer sizes: {text}")
+    return tuple(values)
+
+
+def parse_hours(text):
+    text = str(text).strip().lower()
+    if text in {"all", "0-23"}:
+        return set(range(24))
+
+    selected = set()
+    for part in text.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if "-" in part:
+            start, end = [int(value) for value in part.split("-", 1)]
+            selected.update(range(start, end + 1))
+        else:
+            selected.add(int(part))
+    return selected
+
+
+def sample_weights(
+    frame,
+    train_mask,
+    day,
+    half_life_days,
+    low_weight,
+    high_weight,
+    daytime_weight,
+    evening_weight,
+    daytime_low_weight,
+):
     train_dt = frame.loc[train_mask, "datetime"]
     age_days = (pd.Timestamp(day) - train_dt).dt.total_seconds().to_numpy(dtype="float64") / 86400.0
     if half_life_days > 0:
@@ -105,8 +156,48 @@ def sample_weights(frame, train_mask, day, half_life_days, low_weight, high_weig
     weights[actual < 1000.0] *= low_weight
     weights[actual >= 12000.0] *= high_weight
     weights[(hour >= 10) & (hour <= 16)] *= daytime_weight
+    weights[(actual < 1000.0) & (hour >= 10) & (hour <= 16)] *= daytime_low_weight
     weights[(hour >= 19) & (hour <= 23)] *= evening_weight
     return np.clip(weights, 0.05, 20.0)
+
+
+def bounded_numeric_mask(values, min_value, max_value):
+    series = pd.to_numeric(values, errors="coerce")
+    mask = np.isfinite(series.to_numpy(dtype="float64"))
+    if min_value is not None:
+        mask &= series.to_numpy(dtype="float64") >= float(min_value)
+    if max_value is not None:
+        mask &= series.to_numpy(dtype="float64") <= float(max_value)
+    return mask
+
+
+def apply_gate_mask(frame, target_mask, source, args):
+    selected = target_mask.copy()
+    hours = parse_hours(args.apply_hours)
+    if hours != set(range(24)):
+        selected &= frame["datetime"].dt.hour.isin(hours).to_numpy()
+    if args.apply_source_min > 0.0:
+        selected &= source >= args.apply_source_min
+    if args.apply_source_max > 0.0:
+        selected &= source <= args.apply_source_max
+
+    gate_columns = [
+        ("f_price_lag_24", args.apply_lag24_min, args.apply_lag24_max),
+        ("f_price_lag_48", args.apply_lag48_min, args.apply_lag48_max),
+        ("f_rolling_mean_hour_7d", args.apply_rolling7_min, args.apply_rolling7_max),
+    ]
+    for col, min_value, max_value in gate_columns:
+        if col not in frame.columns:
+            continue
+        has_min = min_value > 0.0
+        has_max = max_value > 0.0
+        if has_min or has_max:
+            selected &= bounded_numeric_mask(
+                frame[col],
+                min_value if has_min else None,
+                max_value if has_max else None,
+            )
+    return selected
 
 
 def source_day_error_scores(frame, source_col):
@@ -155,7 +246,10 @@ def apply_nonlinear_stacker(
     frame = frame.sort_values("datetime").reset_index(drop=True)
     feature_cols = numeric_feature_columns(frame, args.output_col)
 
-    source = frame[args.source_col].to_numpy(dtype="float64")
+    source = clip_price_forecast(
+        frame[args.source_col].to_numpy(dtype="float64"),
+        frame["price_cap"].to_numpy(dtype="float64"),
+    )
     stacked = source.copy()
     applied = np.zeros(len(frame), dtype="int64")
 
@@ -168,6 +262,10 @@ def apply_nonlinear_stacker(
 
         X_train = finite_frame(frame.loc[train_mask, feature_cols])
         X_target = finite_frame(frame.loc[target_mask, feature_cols])
+        if args.model_type == "mlp":
+            scaler = RobustScaler(quantile_range=(5.0, 95.0))
+            X_train = scaler.fit_transform(X_train)
+            X_target = scaler.transform(X_target)
         y_actual = frame.loc[train_mask, "actual"].to_numpy(dtype="float64")
         y_source = frame.loc[train_mask, args.source_col].to_numpy(dtype="float64")
         y_train = target_values(y_actual, y_source, args.target)
@@ -180,6 +278,7 @@ def apply_nonlinear_stacker(
             high_weight=args.high_weight,
             daytime_weight=args.daytime_weight,
             evening_weight=args.evening_weight,
+            daytime_low_weight=args.daytime_low_weight,
         )
         weights = apply_source_error_outlier_weights(
             frame=frame,
@@ -195,8 +294,11 @@ def apply_nonlinear_stacker(
         raw_pred = model.predict(X_target)
         day_source = source[target_mask]
         day_pred = invert_prediction(day_source, raw_pred, args.target)
-        stacked[target_mask] = (1.0 - args.blend) * day_source + args.blend * day_pred
-        applied[target_mask] = 1
+        candidate = source.copy()
+        candidate[target_mask] = (1.0 - args.blend) * day_source + args.blend * day_pred
+        selected_mask = apply_gate_mask(frame, target_mask, source, args)
+        stacked[selected_mask] = candidate[selected_mask]
+        applied[selected_mask] = 1
 
     if args.apply_recent_days > 0:
         recent_start = frame["datetime"].max() - pd.Timedelta(days=args.apply_recent_days)
@@ -204,7 +306,7 @@ def apply_nonlinear_stacker(
         stacked = np.where(recent_mask, stacked, source)
         applied = np.where(recent_mask, applied, 0)
 
-    frame[args.output_col] = np.clip(stacked, 0.0, frame["price_cap"].to_numpy(dtype="float64"))
+    frame[args.output_col] = clip_price_forecast(stacked, frame["price_cap"].to_numpy(dtype="float64"))
     frame[f"{args.output_col}_applied"] = applied
     return frame
 
@@ -219,6 +321,13 @@ def append_log(output_dir, experiment_id, input_experiment, params, artifacts, v
             f"model `{params['model_type']}`, source `{params['source_col']}`, target `{params['target']}`, "
             f"lookback `{params['lookback_days']}` days, min train `{params['min_train_days']}` days, "
             f"blend `{params['blend']}`, apply recent days `{params['apply_recent_days']}`.\n"
+        )
+        f.write(
+            "- Focus weights/gate: "
+            f"low `{params['low_weight']}`, daytime-low `{params.get('daytime_low_weight', 1.0)}`, "
+            f"daytime `{params['daytime_weight']}`, evening `{params['evening_weight']}`, "
+            f"apply hours `{params.get('apply_hours', 'all')}`, source range "
+            f"`{params.get('apply_source_min', 0.0)}`-`{params.get('apply_source_max', 0.0)}`.\n"
         )
         if params.get("source_error_outlier_quantile", 0.0) > 0.0:
             f.write(
@@ -248,7 +357,7 @@ def main():
     parser.add_argument("--experiment-id", required=True)
     parser.add_argument("--source-col", required=True)
     parser.add_argument("--output-col", default="nonlinear_stack_pred")
-    parser.add_argument("--model-type", choices=["hgb", "rf", "et"], default="hgb")
+    parser.add_argument("--model-type", choices=["hgb", "rf", "et", "mlp"], default="hgb")
     parser.add_argument("--target", choices=["resid", "ratio", "logresid", "log"], default="resid")
     parser.add_argument("--lookback-days", type=int, default=45)
     parser.add_argument("--min-train-days", type=int, default=21)
@@ -258,7 +367,17 @@ def main():
     parser.add_argument("--low-weight", type=float, default=1.2)
     parser.add_argument("--high-weight", type=float, default=1.2)
     parser.add_argument("--daytime-weight", type=float, default=1.1)
+    parser.add_argument("--daytime-low-weight", type=float, default=1.0)
     parser.add_argument("--evening-weight", type=float, default=1.1)
+    parser.add_argument("--apply-hours", default="all")
+    parser.add_argument("--apply-source-min", type=float, default=0.0)
+    parser.add_argument("--apply-source-max", type=float, default=0.0)
+    parser.add_argument("--apply-lag24-min", type=float, default=0.0)
+    parser.add_argument("--apply-lag24-max", type=float, default=0.0)
+    parser.add_argument("--apply-lag48-min", type=float, default=0.0)
+    parser.add_argument("--apply-lag48-max", type=float, default=0.0)
+    parser.add_argument("--apply-rolling7-min", type=float, default=0.0)
+    parser.add_argument("--apply-rolling7-max", type=float, default=0.0)
     parser.add_argument("--source-error-outlier-quantile", type=float, default=0.0)
     parser.add_argument("--source-error-outlier-weight", type=float, default=1.0)
     parser.add_argument("--loss", default="squared_error")
@@ -269,6 +388,12 @@ def main():
     parser.add_argument("--l2-regularization", type=float, default=1.0)
     parser.add_argument("--n-estimators", type=int, default=200)
     parser.add_argument("--max-depth", type=int, default=4)
+    parser.add_argument("--hidden-layers", default="64,32")
+    parser.add_argument("--activation", choices=["identity", "logistic", "tanh", "relu"], default="relu")
+    parser.add_argument("--mlp-alpha", type=float, default=0.001)
+    parser.add_argument("--mlp-early-stopping", action="store_true")
+    parser.add_argument("--mlp-validation-fraction", type=float, default=0.12)
+    parser.add_argument("--mlp-n-iter-no-change", type=int, default=12)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 

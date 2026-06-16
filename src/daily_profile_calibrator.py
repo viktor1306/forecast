@@ -4,6 +4,8 @@ from sklearn.linear_model import Ridge
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
+from prediction_limits import clip_price_forecast
+
 
 DAILY_PROFILE_BLEND = 0.69
 RIDGE_ALPHA = 20.0
@@ -118,13 +120,13 @@ def apply_daily_profile_calibration(
 
         daily_pred = np.expm1(model.predict(features.loc[[target_date]])[0])
         daily_cap = cap.loc[target_date].to_numpy(dtype="float64")
-        daily_pred = np.clip(daily_pred, 0, daily_cap)
+        daily_pred = clip_price_forecast(daily_pred, daily_cap)
 
         day_index = target_index[target_index.normalize() == target_date]
         if len(day_index) == 0:
             continue
         existing = result.loc[day_index].to_numpy(dtype="float64")
         adjusted = blend * existing + (1.0 - blend) * daily_pred[:len(day_index)]
-        result.loc[day_index] = np.clip(adjusted, 0, daily_cap[:len(day_index)])
+        result.loc[day_index] = clip_price_forecast(adjusted, daily_cap[:len(day_index)])
 
     return result

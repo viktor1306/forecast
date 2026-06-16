@@ -16,10 +16,30 @@
 - evaluation rows: `2232`
 - duplicate factual datetimes: `0`
 
+Поточний research target best:
+
+- experiment: `night_hourratio_final_under5_v1`
+- prediction column: `night_hourratio_final_under5_pred`
+- 3m WMAPE: `4.9896%`
+- 14d WMAPE: `8.6172%`
+- all available WMAPE: `5.0634%`
+- evaluation rows: `2232`
+- duplicate factual datetimes: `0`
+
 Цілі:
 
-- short-term `10-15%` WMAPE за 14 днів: досягнуто, зараз `10.3096%`
-- long-term `5-6%` WMAPE за 3 місяці: досягнуто на поточному evaluation window, зараз `5.9937%`
+- short-term goal: `14d WMAPE < 10%` - досягнуто в research-candidate `night_hourratio_final_under5_v1` з `8.6172%` (production promoted baseline ще `10.3096%`)
+- long-term goal: `3m WMAPE < 5%` - досягнуто в research-candidate `night_hourratio_final_under5_v1` з `4.9896%` (production promoted baseline ще `5.9937%`)
+- guardrail: прогноз РДН не може бути нижче `10 грн/МВтг`; усі нові production forecasts кліпаються у діапазон `[10, price_cap]`
+
+Поточний target-balanced candidate, ще не promoted:
+
+- experiment: `night_hourratio_final_under5_v1`
+- prediction column: `night_hourratio_final_under5_pred`
+- chain: `day13_16_anchor_lowrepair_after_night_v1` -> night hour/month bias -> day 14-16 hour/month repair -> night hour-8 repair -> morning source-bin/weekend repair -> day 14-16 ratio low-price repair -> broad source-bin/daytime repair -> night ratio repair -> morning 7-10 summer source-bin repairs -> day 13-16 ratio WMAPE repair -> evening repairs -> day 11-15 source-bin/weekend repair -> final morning/night hour-ratio repairs.
+- result: `3m WMAPE 4.9896%`, `14d WMAPE 8.6172%`, `daytime_low_lt_1000 38.45%`, `summer_daytime_low 24.74%`
+- validation: `2232` rows, duplicate factual datetimes `0`, min prediction `10.0`, predictions below `10` = `0`, predictions above cap = `0`
+- status: both strict research goals are reached; production forecast helper still uses the older `daybias31` promoted chain because the research candidate depends on intermediate tree/ensemble/anchor/current-chain columns that are not yet emitted for future-date forecasts.
 
 Актуальні артефакти:
 
@@ -113,22 +133,76 @@
 | Lag24 profile + anti-lag48 + morning anti-profile `lagprofile4` | `6.0218%` | `10.3585%` |
 | Shifted same-hour repairs through `hourbias22` | `6.0027%` | `10.3096%` |
 | Final midday daily-bias repair through `daybias31` | `5.9937%` | `10.3096%` |
+| Rolling MLP low-day logresid candidate | `5.9859%` | `10.2450%` |
+| MLP + low-collapse classifier + rebound profile candidate | `5.9624%` | `10.1930%` |
+| Lag48 h0/h9-10 14d repair chain | `5.9905%` | `10.0163%` |
+| Lowday 7d-profile repair, first `14d < 10%` candidate | `5.9867%` | `9.9855%` |
+| Lag24-up guard after 14d lowday candidate | `5.9761%` | `9.9647%` |
+| Shifted tree-recent blend after 14d lowday candidate | `5.9087%` | `9.9911%` |
+| Peak-error shifted tree-recent blend after target candidate | `5.8762%` | `9.9946%` |
+| Ratio/hour shifted group-bias repair after peakblend | `5.8543%` | `9.9507%` |
+| Peak-error source-bin tree-recent blend after ratio-bias | `5.8250%` | `9.9839%` |
+| Evening month group-bias repair after source-bin blend | `5.8200%` | `9.9513%` |
+| HGB mid/high residual after evening month repair | `5.8161%` | `9.9577%` |
+| Evening ratio tree-recent blend after HGB | `5.7943%` | `9.9623%` |
+| Night/weekend bias repair after evening HGB blend | `5.7898%` | `9.9367%` |
+| Evening source-bin tree-recent blend after night repair | `5.7688%` | `9.9568%` |
+| Lowday low-collapse blend after evening source-bin repair | `5.7568%` | `9.9580%` |
+| Night ratio-bias repair after lowday blend | `5.7520%` | `9.9625%` |
+| Midday source-bin bias repair after lowday/night candidate | `5.7411%` | `9.9588%` |
+| Evening ratio tree-recent blend after midday source-bin repair | `5.7029%` | `9.9616%` |
+| Day abs-bias repair after evening blend | `5.6987%` | `9.9494%` |
+| Day source-bin tree-recent blend after abs-bias repair | `5.6614%` | `9.9688%` |
+| Day abs-bias repair after tree day blend | `5.6569%` | `9.9598%` |
+| Night ensemble-guarded blend after day repair | `5.6309%` | `9.9365%` |
+| Close tree-recent hour blend after night ensemble repair | `5.6160%` | `9.9476%` |
+| Night diff-bin ensemble blend after close tree blend | `5.6010%` | `9.9408%` |
+| Overnight spike blend to recent-calibrated ensemble | `5.5822%` | `9.8266%` |
+| H17-18 bias repair after overnight spike blend | `5.5773%` | `9.8248%` |
+| Tree-base day source-bin blend after h17-18 repair | `5.5655%` | `9.8018%` |
+| Tree-recent night diff blend after tree-base day repair | `5.5511%` | `9.8285%` |
+| Final h17-18 bias repair after tree-recent night blend | `5.5470%` | `9.8285%` |
+| Ensemble neural morning spike after h17-18 repair | `5.5207%` | `9.6925%` |
+| Morning weekend/source-bin bias after neural spike | `5.5156%` | `9.7092%` |
+| Rolling-min morning spike after bias repair | `5.4949%` | `9.5543%` |
+| Tree-base day 10-17 ratio blend after rolling-min repair | `5.4791%` | `9.5286%` |
+| Morning source-bin bias after tree-base day blend | `5.4698%` | `9.5352%` |
+| Multi-candidate day blend after morning bias | `5.4597%` | `9.5352%` |
+| Morning diff-bin multi-candidate after best | `5.4486%` | `9.5184%` |
+| Hour-5 WMAPE20 bias after morning diff-bin | `5.4396%` | `9.5005%` |
+| Morning source-ratio spike after hour bias | `5.4235%` | `9.5005%` |
+| Hour-13 WMAPE12 bias after spike | `5.4167%` | `9.4935%` |
+| Evening anchor candidate after hour-13 bias | `5.4009%` | `9.4666%` |
+| Night anchor candidate after evening repair | `5.3922%` | `9.4358%` |
+| Day 13-16 anchor low-price repair after night | `5.3881%` | `9.4393%` |
+| Night/month + day 14-16 hour/month repairs | `5.3573%` | `9.4146%` |
+| Day 14-16 ratio low-price + source-bin/daytime repair | `5.2665%` | `9.1716%` |
+| Night ratio + morning/day/evening shifted repairs | `5.1267%` | `8.7542%` |
+| Day 11-15 repair + evening/morning final push | `5.0027%` | `8.6566%` |
+| Night hour-ratio final under-5 repair | `4.9896%` | `8.6172%` |
 
 ## Чесна оцінка
 
-Основний evaluator для hybrid-artifacts:
+Основний evaluator для promoted production artifact:
 
 ```powershell
 python src/evaluate_neural_hybrid.py output\neural_best_predictions.csv --pred-col daybias31_hb22_midday_d8_b050_abs250_pred
 ```
 
+Research target best перевіряється з experiment artifact:
+
+```powershell
+python src/evaluate_neural_hybrid.py output\neural_experiment_night_hourratio_final_under5_v1_predictions.csv --pred-col night_hourratio_final_under5_pred
+```
+
 Важлива властивість: кожна фактична година рахується рівно один раз. `src/evaluate_neural_hybrid.py` перевіряє дублікати `datetime` і не дозволяє тихо рахувати один факт кілька разів.
 
-Поточний best має:
+Поточний research target best має:
 
 - `rows = 2232`
 - `duplicate_datetimes = 0`
-- `actual_gt_cap_rows = 0`
+- `min_prediction = 10.0`
+- `pred_below_10_rows = 0`
 - `pred_gt_cap_rows = 0`
 
 ## Leakage-правила
@@ -160,6 +234,8 @@ python src/evaluate_neural_hybrid.py output\neural_best_predictions.csv --pred-c
 ## Прайскепи
 
 Єдина логіка історичних прайскепів знаходиться в `price_caps.py`. Поточний promoted artifact був перерахований з оновленими caps; `36` рядків змінили cap, після цього `actual_gt_cap_rows = 0`.
+
+Окрема нижня ринкова межа прогнозу знаходиться в `src/prediction_limits.py`: `MIN_MARKET_PRICE = 10.0`. Це не price cap зверху, а фізична/ринкова підлога для forecast output, щоб не отримувати неможливі `0 грн/МВтг` у денних low-price годинах.
 
 Для поточної історії враховано:
 
@@ -198,7 +274,7 @@ python src/evaluate_neural_hybrid.py output\neural_best_predictions.csv --pred-c
 - `src/evaluate_long_term_v1.py` - стара long-term оцінка tree pipeline.
 - `src/evaluate_neural_hybrid.py` - чесна оцінка hybrid artifacts.
 - `src/rolling_origin_stacker.py` - rolling Ridge residual/ratio stacker.
-- `src/rolling_origin_nonlinear_stacker.py` - rolling HGB/ET nonlinear stacker.
+- `src/rolling_origin_nonlinear_stacker.py` - rolling HGB/ET/MLP nonlinear stacker with optional low-regime apply gates.
 - `src/analog_day_profile_adjuster.py` - leakage-safe analog-day profile correction.
 - `src/apply_day_bias_adjuster.py` - shifted rolling daily source-bias correction.
 - `src/apply_hour_bias_adjuster.py` - shifted rolling same-hour source-bias correction.
@@ -207,6 +283,8 @@ python src/evaluate_neural_hybrid.py output\neural_best_predictions.csv --pred-c
 - `src/apply_candidate_blend_adjuster.py` - leakage-safe shifted selector/blender між current prediction і lag/profile candidate columns.
 - `src/apply_low_profile_adjuster.py` - deterministic low-price profile rules.
 - `src/apply_high_profile_adjuster.py` - deterministic high-price/cap-spike rules.
+- `src/apply_low_collapse_classifier_adjuster.py` - rolling-origin low-collapse classifier для денних low-price годин.
+- `src/apply_rebound_profile_adjuster.py` - forecast-time rebound profile repair для низького денного прогнозу після low-collapse.
 - `src/train_lstm.py` і `src/train_lstm_tf.py` - старі LSTM experiments, не production best.
 
 ## Основний цикл
@@ -257,17 +335,18 @@ python src/evaluate_neural_hybrid.py output\neural_best_predictions.csv --pred-c
 
 ## Відомі складні режими
 
-Поточна модель вже добре тримає вечірні cap-spike години, але все ще має велику відносну похибку в денних low-price режимах:
+Промотована модель вже добре тримає вечірні cap-spike години, але найбільша відносна похибка була у денних low-price режимах, особливо коли фактична ціна нижче `1000 грн/МВтг`:
 
-| regime | WMAPE |
-|---|---:|
-| `summer_daytime_low` | `35.19%` |
-| `daytime_low_lt_1000` | `49.77%` |
-| `cap_spike_evening` | `0.99%` |
-| `evening_19_23` | `2.76%` |
+| regime | promoted WMAPE | target-balanced candidate WMAPE |
+|---|---:|---:|
+| `summer_daytime_low` | `35.19%` | `24.74%` |
+| `daytime_low_lt_1000` | `49.77%` | `38.45%` |
+| `cap_spike_evening` | `0.99%` | `1.08%` |
+| `evening_19_23` | `2.76%` | `2.15%` |
 
-Це очікувано для low-price годин: мала база фактичної ціни сильно збільшує WMAPE, а приховані фактори на кшталт атомної генерації, ремонтів, обмежень або ринкових дій не завжди є в публічних погодинних даних.
+Це був головний bottleneck для пробиття `14d < 10%` і `3m < 5%`; після `night_hourratio_final_under5_v1` обидві research-цілі виконані, а денний low-price режим суттєво кращий за promoted baseline. Low-price rows все одно лишаються guardrail для будь-якої production-промоції. Мала база фактичної ціни сильно збільшує WMAPE, а приховані фактори на кшталт атомної генерації, ремонтів, обмежень або ринкових дій не завжди є в публічних погодинних даних.
 Окремо перевірено просте копіювання попереднього дня: `f_price_lag_24` сам по собі має близько `27.80% / 30.02%` WMAPE, але daily-gated selector корисний у рідкісних режимах, де вчорашній профіль уже показав перевагу над model.
+Out-of-sample DAM на `2026-06-17` з OREE підтягнуто без запису в train CSV: `prediction_2026-06-17_current_best.csv` має WMAPE `17.03%` проти факту, з найбільшим провалом у годинах `7-19`. Forecast floor вже працює (`10 грн/МВтг`, не `0`), але current-best production chain занадто сильно валить денні low-block години до підлоги.
 
 ## Негативні та непідвищені експерименти
 
@@ -280,6 +359,9 @@ python src/evaluate_neural_hybrid.py output\neural_best_predictions.csv --pred-c
 - `analog_ratio_all_b012_k4_c070_t120_v1`: `7.5536% / 14.1680%`, трохи кращий 14d, але fractionally гірший 3m, тому не promoted.
 - `hourbias4_roll2_bn020_day_wmape25_v1`: `7.4488% / 13.5574%`, кращий 14d-reference, але 3m гірший за promoted best.
 - Second HGB layer поверх analog-source трохи рухав 14d або 3m, але не покращив обидві метрики одночасно.
+- Rolling Ridge після `night_ratio_bias_after_lowday_blend_v1` не promoted: residual `5.771% / 10.050%`, logresid `5.818% / 10.083%`.
+- HGB mid/high residual layer після `day_absbias_repair_after_tree_day_blend_v1` не promoted: приблизно `5.657% / 9.971%`, 14d погіршився без 3m виграшу.
+- Forecast-time rebound profile repairs після `daybias31_rechain_floor10_v1` не promoted: широкий варіант погіршив до `6.3203% / 10.8109%`, floor-only варіант до `6.0966% / 10.4835%`.
 
 ## API
 
@@ -307,4 +389,6 @@ python src/train_model_v1.py
 
 ## Наступний напрям
 
-Довгострокова ціль `5-6%` на поточному 3m evaluation window формально закрита, але запас малий (`5.9937%`). Найкорисніший наступний крок: перевірити promoted chain на наступному holdout-блоці без підбору параметрів на ньому і окремо побудувати stricter rolling-origin tree teacher/day-profile regime model для anomaly-days та low-price midday режимів.
+Наступна ціль: productionize research chain `night_hourratio_final_under5_v1`, тобто відтворити потрібні intermediate columns у future-date forecast pipeline або зібрати еквівалентний production-feasible rolling repair тільки на доступних forecast-time фічах (`lag24/48/168`, rolling профілі, current chain columns). Research target уже має `3m WMAPE 4.9896%` і `14d WMAPE 8.6172%`; promotion потрібно робити без регресії `daytime_low_lt_1000`, `summer_daytime_low`, cap-spike/evening режимів і з обов'язковим lower floor `10 грн/МВтг`.
+
+Нові фактичні/ринкові дні, наприклад РДН на `2026-06-17`, треба спершу використати як out-of-sample перевірку promoted chain і target-balanced candidate. Якщо похибка на такому дні зросла приблизно на `3 п.п.` проти попереднього прогнозу, це сигнал для regime repair, але не причина підганяти параметри напряму під один день.

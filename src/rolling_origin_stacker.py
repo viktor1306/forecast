@@ -17,6 +17,7 @@ for import_path in (SRC_DIR, ROOT_DIR):
         sys.path.append(import_path)
 
 from evaluate_neural_hybrid import calculate_metrics, save_evaluation_artifacts
+from prediction_limits import clip_price_forecast
 from train_neural_hybrid import finite_frame, prepare_dataframe
 
 
@@ -194,7 +195,7 @@ def fit_predict_day(frame, feature_cols, source_col, target_mask, train_mask, ta
         raise ValueError(f"Unsupported target: {target}")
 
     caps = frame.loc[target_mask, "price_cap"].to_numpy(dtype="float64")
-    return np.clip(pred, 0.0, caps)
+    return clip_price_forecast(pred, caps)
 
 
 def apply_rolling_stacker(
@@ -245,7 +246,7 @@ def apply_rolling_stacker(
         stacked = np.where(recent_mask, stacked, source)
         applied = np.where(recent_mask, applied, 0)
 
-    frame[output_col] = np.clip(stacked, 0.0, frame["price_cap"].to_numpy(dtype="float64"))
+    frame[output_col] = clip_price_forecast(stacked, frame["price_cap"].to_numpy(dtype="float64"))
     frame["rolling_stack_applied"] = applied
     return frame
 

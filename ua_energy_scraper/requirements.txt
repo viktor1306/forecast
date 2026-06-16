@@ -1,0 +1,6 @@
+pandas
+requests
+websocket-client
+playwright
+cloudscraper
+curl_cffi

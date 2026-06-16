@@ -5,6 +5,8 @@ from sklearn.linear_model import Ridge
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
+from prediction_limits import clip_price_forecast, clip_price_series
+
 
 LOOKBACK_DAYS = 90
 MIN_HOUR_SAMPLES = 20
@@ -145,7 +147,7 @@ def apply_recent_hourly_ridge_calibration(
 
         raw_pred = model.predict(frame.loc[target_hour, features])
         caps = pd.to_numeric(frame.loc[target_hour, "price_cap"], errors="coerce").to_numpy(dtype="float64")
-        calibrated.loc[target_hour] = np.clip(raw_pred, 0, caps)
+        calibrated.loc[target_hour] = clip_price_forecast(raw_pred, caps)
 
     return calibrated
 
@@ -224,7 +226,7 @@ def apply_low_price_specialist(
             (1.0 - blend_strength) * result.loc[idx]
             + blend_strength * low_baseline.loc[idx]
         )
-        result.loc[idx] = adjusted.clip(lower=0, upper=caps.loc[idx])
+        result.loc[idx] = clip_price_series(adjusted, caps.loc[idx])
 
     return result
 
@@ -300,7 +302,7 @@ def apply_high_price_specialist(
     if high_risk.any():
         idx = target_in_frame[high_risk.to_numpy()]
         caps = frame.loc[idx, "price_cap"].astype("float64")
-        result.loc[idx] = base_series.loc[idx].clip(lower=0, upper=caps)
+        result.loc[idx] = clip_price_series(base_series.loc[idx], caps)
 
     return result
 
@@ -440,9 +442,9 @@ def apply_day_regime_selector(
         chosen = chosen.where(chosen.notna(), result.loc[day_index])
         if "price_cap" in frame.columns:
             caps = pd.to_numeric(frame.loc[day_index, "price_cap"], errors="coerce")
-            chosen = chosen.clip(lower=0).where(caps.isna(), chosen.clip(lower=0, upper=caps))
+            chosen = clip_price_series(chosen, caps)
         else:
-            chosen = chosen.clip(lower=0)
+            chosen = clip_price_series(chosen)
         result.loc[day_index] = chosen
 
     return result

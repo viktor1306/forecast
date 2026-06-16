@@ -15,6 +15,7 @@ import matplotlib.ticker as ticker
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from train_model_v1 import generate_features, enforce_limits
 from daily_profile_calibrator import apply_daily_profile_calibration
+from prediction_limits import MIN_MARKET_PRICE, clip_price_forecast, clip_price_series
 from recent_calibrator import (
     apply_day_regime_selector,
     apply_high_price_specialist,
@@ -94,9 +95,9 @@ def build_fallback_predictions(df_hist, target_index, caps):
 
     if caps is not None:
         caps_series = pd.Series(caps, index=target_index, dtype='float64')
-        fallback = fallback.clip(lower=0).where(caps_series.isna(), fallback.clip(lower=0, upper=caps_series))
+        fallback = clip_price_series(fallback, caps_series)
     else:
-        fallback = fallback.clip(lower=0)
+        fallback = clip_price_series(fallback)
 
     return fallback
 
@@ -343,8 +344,7 @@ def predict_tomorrow(target_date_str=None):
         ensemble_mask = w_sum > 0
         final_valid[ensemble_mask] = (combined[ensemble_mask] / w_sum[ensemble_mask]) * caps_valid[ensemble_mask]
         final_valid = np.where(np.isfinite(final_valid), final_valid, fallback_valid)
-        final_valid = np.minimum(final_valid, caps_valid)
-        final_valid = np.maximum(final_valid, 0)
+        final_valid = clip_price_forecast(final_valid, caps_valid)
 
         hour_predictions = pd.Series(fallback_h, index=X_h.index, dtype='float64')
         hour_predictions.loc[X_valid.index] = final_valid
@@ -383,11 +383,13 @@ def predict_tomorrow(target_date_str=None):
         base_predictions.reindex(future_index),
     )
     df_predict = df_full.reindex(future_index)
+    predictions = clip_price_series(predictions, df_predict['price_cap'])
              
     # 5. Візуалізація
     plt.figure(figsize=(15, 7))
     plt.plot(predictions.index.hour + 1, predictions, label='Ensemble Forecast', color='red', linewidth=2, marker='o')
     plt.plot(predictions.index.hour + 1, df_predict['price_cap'], label='Price Cap', color='green', linestyle='--', alpha=0.5)
+    plt.axhline(MIN_MARKET_PRICE, label='Price Floor', color='gray', linestyle=':', alpha=0.5)
     
     plt.title(f"Прогноз цін на {target_date} (Ensemble V1)", fontsize=14)
     plt.xlabel("Година", fontsize=12)

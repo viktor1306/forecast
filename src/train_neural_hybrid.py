@@ -30,6 +30,7 @@ for import_path in (SRC_DIR, ROOT_DIR):
 from daily_profile_calibrator import apply_daily_profile_calibration
 from evaluate_long_term_v1 import align_features, expected_feature_names, repair_legacy_extra_trees
 from evaluate_neural_hybrid import calculate_metrics, save_evaluation_artifacts, wmape
+from prediction_limits import MIN_MARKET_PRICE, clip_price_forecast, clip_price_series
 from recent_calibrator import (
     apply_day_regime_selector,
     apply_high_price_specialist,
@@ -66,9 +67,16 @@ class ExperimentConfig:
     daytime_weight: float = 1.35
     evening_weight: float = 1.35
     low_price_weight: float = 1.45
+    daytime_low_weight: float = 1.35
     high_price_weight: float = 1.45
+    low_rel_weight: float = 0.04
+    daytime_low_rel_weight: float = 0.06
     low_bce_weight: float = 0.05
+    daytime_low_bce_weight: float = 0.04
     high_bce_weight: float = 0.05
+    blend_mode: str = "hour-low"
+    low_blend_prob_threshold: float = 0.45
+    min_low_blend_rows: int = 8
 
 
 def seed_everything(seed):
@@ -231,9 +239,9 @@ def predict_tree_ensemble(df, models_dir):
             pred = np.average(stacked, axis=0, weights=weight_arr) * caps
 
         pred = np.where(np.isfinite(pred), pred, fallback.loc[X_h.index].to_numpy(dtype="float64"))
-        pred_all.loc[X_h.index] = np.clip(pred, 0.0, caps)
+        pred_all.loc[X_h.index] = clip_price_forecast(pred, caps)
 
-    pred_all = pred_all.where(pred_all.notna(), fallback).clip(lower=0.0)
+    pred_all = clip_price_series(pred_all.where(pred_all.notna(), fallback), df["price_cap"].reindex(pred_all.index))
     return df, pred_all.sort_index()
 
 
@@ -359,12 +367,15 @@ def train_split_safe_tree_predictions(df, train_end_ts, model_types):
             hour_caps = caps_all.loc[hour_mask].to_numpy(dtype="float64")
             hour_pred = ratio * hour_caps
             hour_pred = np.where(np.isfinite(hour_pred), hour_pred, fallback.loc[hour_mask].to_numpy(dtype="float64"))
-            hour_pred = np.clip(hour_pred, 0.0, hour_caps)
+            hour_pred = clip_price_forecast(hour_pred, hour_caps)
 
         predictions.loc[hour_mask] = hour_pred
         print(f"split-safe tree h={hour:02d} train={int(train_hour.sum())}", flush=True)
 
-    predictions = predictions.where(predictions.notna(), fallback).clip(lower=0.0)
+    predictions = clip_price_series(
+        predictions.where(predictions.notna(), fallback),
+        caps_all.reindex(predictions.index),
+    )
     return df, predictions.sort_index()
 
 
@@ -437,7 +448,7 @@ def build_sample_dates(df, config):
 
 def build_arrays(df, days, history_features, future_features, config):
     x_history, x_future, y_price, base_pred, caps, weights = [], [], [], [], [], []
-    low_label, high_label, datetimes = [], [], []
+    low_label, daytime_low_label, high_label, datetimes = [], [], [], []
 
     train_last_day = days.max() if len(days) else None
     for day in days:
@@ -455,6 +466,7 @@ def build_arrays(df, days, history_features, future_features, config):
         sample_weight[(hour >= 10) & (hour <= 16)] *= config.daytime_weight
         sample_weight[(hour >= 19) & (hour <= 23)] *= config.evening_weight
         sample_weight[actual < 1000.0] *= config.low_price_weight
+        sample_weight[(actual < 1000.0) & (hour >= 10) & (hour <= 16)] *= config.daytime_low_weight
         sample_weight[actual > 14000.0] *= config.high_price_weight
         if train_last_day is not None:
             age_days = max((train_last_day - day).days, 0)
@@ -464,10 +476,11 @@ def build_arrays(df, days, history_features, future_features, config):
         x_history.append(hist)
         x_future.append(fut)
         y_price.append(actual)
-        base_pred.append(np.clip(base, 0.0, cap))
+        base_pred.append(clip_price_forecast(base, cap))
         caps.append(cap)
         weights.append(sample_weight)
         low_label.append((actual < 1000.0).astype("float32"))
+        daytime_low_label.append(((actual < 1000.0) & (hour >= 10) & (hour <= 16)).astype("float32"))
         high_label.append((actual > 14000.0).astype("float32"))
         datetimes.extend(fut_idx)
 
@@ -479,6 +492,7 @@ def build_arrays(df, days, history_features, future_features, config):
         "caps": np.asarray(caps, dtype="float32"),
         "weights": np.asarray(weights, dtype="float32"),
         "low_label": np.asarray(low_label, dtype="float32"),
+        "daytime_low_label": np.asarray(daytime_low_label, dtype="float32"),
         "high_label": np.asarray(high_label, dtype="float32"),
         "datetimes": pd.DatetimeIndex(datetimes),
         "days": days,
@@ -518,6 +532,7 @@ class DayDataset(Dataset):
             "caps": torch.tensor(self.arrays["caps"][idx], dtype=torch.float32),
             "weights": torch.tensor(self.arrays["weights"][idx], dtype=torch.float32),
             "low_label": torch.tensor(self.arrays["low_label"][idx], dtype=torch.float32),
+            "daytime_low_label": torch.tensor(self.arrays["daytime_low_label"][idx], dtype=torch.float32),
             "high_label": torch.tensor(self.arrays["high_label"][idx], dtype=torch.float32),
         }
 
@@ -579,6 +594,7 @@ class NeuralResidualDayModel(nn.Module):
         self.residual_head = nn.Linear(hidden_dim, 1)
         self.ratio_head = nn.Linear(hidden_dim, 1)
         self.low_head = nn.Linear(hidden_dim, 1)
+        self.daytime_low_head = nn.Linear(hidden_dim, 1)
         self.high_head = nn.Linear(hidden_dim, 1)
 
     def forward(self, x_history, x_future):
@@ -595,37 +611,52 @@ class NeuralResidualDayModel(nn.Module):
             "residual_log": self.residual_head(decoded).squeeze(-1),
             "ratio": torch.sigmoid(self.ratio_head(decoded).squeeze(-1)) * 1.15,
             "low_logit": self.low_head(decoded).squeeze(-1),
+            "daytime_low_logit": self.daytime_low_head(decoded).squeeze(-1),
             "high_logit": self.high_head(decoded).squeeze(-1),
         }
 
 
 def hybrid_loss(outputs, batch, config):
-    y = batch["y_price"]
-    base = batch["base_pred"].clamp(min=0.0)
-    caps = batch["caps"].clamp(min=1.0)
+    y = batch["y_price"].clamp(min=MIN_MARKET_PRICE)
+    base = batch["base_pred"].clamp(min=MIN_MARKET_PRICE)
+    caps = batch["caps"].clamp(min=MIN_MARKET_PRICE)
     weights = batch["weights"]
 
     pred_log = torch.log1p(base) + outputs["residual_log"]
     cap_log = torch.log1p(caps)
     pred_log = torch.minimum(pred_log, cap_log + 0.05)
-    pred_price = torch.expm1(pred_log).clamp(min=0.0)
+    pred_price = torch.expm1(pred_log).clamp(min=MIN_MARKET_PRICE)
     pred_price = torch.minimum(pred_price, caps)
 
     price_loss = F.smooth_l1_loss((pred_price - y) / 1000.0, torch.zeros_like(y), reduction="none")
-    log_loss = F.smooth_l1_loss(pred_log, torch.log1p(y.clamp(min=0.0)), reduction="none")
+    log_loss = F.smooth_l1_loss(pred_log, torch.log1p(y), reduction="none")
     ratio_target = (y / caps).clamp(0.0, 1.15)
     ratio_loss = F.smooth_l1_loss(outputs["ratio"], ratio_target, reduction="none")
     wmape_like = (torch.abs(pred_price - y) * weights).sum() / ((y.abs() * weights).sum() + 1.0)
+    rel_loss = F.smooth_l1_loss(
+        (pred_price - y) / y.abs().clamp(min=MIN_MARKET_PRICE),
+        torch.zeros_like(y),
+        reduction="none",
+    )
     low_loss = F.binary_cross_entropy_with_logits(outputs["low_logit"], batch["low_label"], reduction="none")
+    daytime_low_loss = F.binary_cross_entropy_with_logits(
+        outputs["daytime_low_logit"],
+        batch["daytime_low_label"],
+        reduction="none",
+    )
     high_loss = F.binary_cross_entropy_with_logits(outputs["high_logit"], batch["high_label"], reduction="none")
 
     weighted = lambda value: (value * weights).sum() / (weights.sum() + 1e-6)
+    focused = lambda value, focus: (value * focus * weights).sum() / ((focus * weights).sum() + 1e-6)
     return (
         0.52 * weighted(price_loss)
         + 0.22 * weighted(log_loss)
         + 0.10 * wmape_like
         + 0.06 * weighted(ratio_loss)
+        + config.low_rel_weight * focused(rel_loss, batch["low_label"])
+        + config.daytime_low_rel_weight * focused(rel_loss, batch["daytime_low_label"])
         + config.low_bce_weight * weighted(low_loss)
+        + config.daytime_low_bce_weight * weighted(daytime_low_loss)
         + config.high_bce_weight * weighted(high_loss)
     )
 
@@ -695,7 +726,7 @@ def train_model(train_arrays, val_arrays, history_dim, future_dim, config, devic
 
 def predict_arrays(model, arrays, device, batch_size):
     loader = DataLoader(DayDataset(arrays), batch_size=batch_size, shuffle=False)
-    residuals, ratios, low_probs, high_probs = [], [], [], []
+    residuals, ratios, low_probs, daytime_low_probs, high_probs = [], [], [], [], []
     model.eval()
     with torch.no_grad():
         for batch in loader:
@@ -704,17 +735,19 @@ def predict_arrays(model, arrays, device, batch_size):
             residuals.append(out["residual_log"].cpu().numpy())
             ratios.append(out["ratio"].cpu().numpy())
             low_probs.append(torch.sigmoid(out["low_logit"]).cpu().numpy())
+            daytime_low_probs.append(torch.sigmoid(out["daytime_low_logit"]).cpu().numpy())
             high_probs.append(torch.sigmoid(out["high_logit"]).cpu().numpy())
 
     residuals = np.concatenate(residuals, axis=0)
     ratios = np.concatenate(ratios, axis=0)
     low_probs = np.concatenate(low_probs, axis=0)
+    daytime_low_probs = np.concatenate(daytime_low_probs, axis=0)
     high_probs = np.concatenate(high_probs, axis=0)
 
-    base = arrays["base_pred"]
+    base = clip_price_forecast(arrays["base_pred"], arrays["caps"])
     caps = arrays["caps"]
-    pred = np.expm1(np.log1p(np.clip(base, 0.0, None)) + residuals)
-    pred = np.clip(pred, 0.0, caps)
+    pred = np.expm1(np.log1p(np.clip(base, MIN_MARKET_PRICE, None)) + residuals)
+    pred = clip_price_forecast(pred, caps)
 
     flat = pd.DataFrame({
         "datetime": arrays["datetimes"],
@@ -724,6 +757,7 @@ def predict_arrays(model, arrays, device, batch_size):
         "neural_pred": pred.reshape(-1),
         "neural_ratio": ratios.reshape(-1),
         "low_prob": low_probs.reshape(-1),
+        "daytime_low_prob": daytime_low_probs.reshape(-1),
         "high_prob": high_probs.reshape(-1),
     })
     return flat.sort_values("datetime").reset_index(drop=True)
@@ -747,7 +781,37 @@ def tune_blend_weights(val_predictions, config):
             pred = weight_tree * group["tree_base_pred"] + (1.0 - weight_tree) * group["neural_pred"]
             scores.append((wmape(group["actual"], pred), float(weight_tree)))
         hourly_weights[int(hour)] = min(scores, key=lambda x: x[0])[1]
-    return {"global_tree_weight": global_weight, "hourly_tree_weight": hourly_weights}
+
+    blend = {
+        "mode": config.blend_mode,
+        "global_tree_weight": global_weight,
+        "hourly_tree_weight": hourly_weights,
+    }
+    if config.blend_mode == "hour-low":
+        low_weights = {}
+        low_counts = {}
+        val_hours = pd.to_datetime(val_predictions["datetime"]).dt.hour
+        low_focus_mask = (
+            val_predictions["daytime_low_prob"].fillna(0.0).to_numpy(dtype="float64")
+            >= config.low_blend_prob_threshold
+        ) & val_hours.between(10, 16).to_numpy()
+
+        for hour in range(10, 17):
+            group = val_predictions[low_focus_mask & (val_hours == hour)]
+            low_counts[int(hour)] = int(len(group))
+            if len(group) < config.min_low_blend_rows:
+                continue
+            scores = []
+            for weight_tree in grid:
+                pred = weight_tree * group["tree_base_pred"] + (1.0 - weight_tree) * group["neural_pred"]
+                scores.append((wmape(group["actual"], pred), float(weight_tree)))
+            low_weights[int(hour)] = min(scores, key=lambda x: x[0])[1]
+
+        blend["daytime_low_tree_weight"] = low_weights
+        blend["daytime_low_counts"] = low_counts
+        blend["low_blend_prob_threshold"] = config.low_blend_prob_threshold
+        blend["min_low_blend_rows"] = config.min_low_blend_rows
+    return blend
 
 
 def apply_blend(predictions, blend):
@@ -757,8 +821,18 @@ def apply_blend(predictions, blend):
         blend["hourly_tree_weight"].get(int(hour), blend["global_tree_weight"])
         for hour in hours
     ], dtype="float64")
+    if blend.get("mode") == "hour-low" and "daytime_low_tree_weight" in blend:
+        low_prob = frame.get("daytime_low_prob", pd.Series(0.0, index=frame.index)).fillna(0.0)
+        low_mask = (
+            (low_prob >= float(blend.get("low_blend_prob_threshold", 0.45)))
+            & hours.between(10, 16)
+        )
+        low_weights = blend.get("daytime_low_tree_weight", {})
+        for hour, weight_tree in low_weights.items():
+            hour_mask = low_mask & (hours == int(hour))
+            weights[hour_mask.to_numpy()] = float(weight_tree)
     frame["hybrid_pred"] = weights * frame["tree_base_pred"] + (1.0 - weights) * frame["neural_pred"]
-    frame["hybrid_pred"] = frame["hybrid_pred"].clip(lower=0.0, upper=frame["price_cap"])
+    frame["hybrid_pred"] = clip_price_series(frame["hybrid_pred"], frame["price_cap"])
     return frame
 
 
@@ -800,14 +874,14 @@ def add_calibrated_variants(df, predictions):
         frame.loc[mask, "hybrid_recent_calibrated_pred"] = frame.loc[mask, "datetime"].map(hybrid_map)
 
     for col in ["tree_recent_calibrated_pred", "hybrid_recent_calibrated_pred"]:
-        frame[col] = frame[col].clip(lower=0.0, upper=frame["price_cap"])
+        frame[col] = clip_price_series(frame[col], frame["price_cap"])
 
     frame["hybrid_guarded_pred"] = frame["hybrid_recent_calibrated_pred"]
     guarded_mask = frame["datetime"].isin(last_14_index)
     frame.loc[guarded_mask, "hybrid_guarded_pred"] = frame.loc[
         guarded_mask, "tree_recent_calibrated_pred"
     ]
-    frame["hybrid_guarded_pred"] = frame["hybrid_guarded_pred"].clip(lower=0.0, upper=frame["price_cap"])
+    frame["hybrid_guarded_pred"] = clip_price_series(frame["hybrid_guarded_pred"], frame["price_cap"])
     return frame
 
 
@@ -833,7 +907,17 @@ def append_experiment_log(output_dir, experiment_id, config, artifacts, split_in
         f"- History features `{feature_info['history_count']}`, future features `{feature_info['future_count']}`.",
         "- Anti-leakage: future raw market columns are excluded; future lag columns with lag < 24 are rejected; scalers fit on train only.",
         f"- Model: TCN residual-log hybrid, hidden `{config.hidden_dim}`, history `{config.history_len}`, dropout `{config.dropout}`.",
-        f"- Weights: daytime `{config.daytime_weight}`, evening `{config.evening_weight}`, low-price `{config.low_price_weight}`, high-price `{config.high_price_weight}`, low BCE `{config.low_bce_weight}`, high BCE `{config.high_bce_weight}`.",
+        (
+            f"- Weights: daytime `{config.daytime_weight}`, evening `{config.evening_weight}`, "
+            f"low-price `{config.low_price_weight}`, daytime-low `{config.daytime_low_weight}`, "
+            f"high-price `{config.high_price_weight}`, low rel `{config.low_rel_weight}`, "
+            f"daytime-low rel `{config.daytime_low_rel_weight}`, low BCE `{config.low_bce_weight}`, "
+            f"daytime-low BCE `{config.daytime_low_bce_weight}`, high BCE `{config.high_bce_weight}`."
+        ),
+        (
+            f"- Blend: mode `{config.blend_mode}`, daytime-low probability threshold "
+            f"`{config.low_blend_prob_threshold}`, minimum rows `{config.min_low_blend_rows}`."
+        ),
         "",
         "| variant | 3m WMAPE | 14d WMAPE | 3m rows |",
         "|---|---:|---:|---:|",
@@ -858,6 +942,7 @@ def main():
     parser.add_argument("--epochs", type=int, default=80)
     parser.add_argument("--history-len", type=int, default=168)
     parser.add_argument("--val-days", type=int, default=45)
+    parser.add_argument("--patience", type=int, default=14)
     parser.add_argument("--hidden-dim", type=int, default=96)
     parser.add_argument("--dropout", type=float, default=0.18)
     parser.add_argument("--lr", type=float, default=7e-4)
@@ -872,14 +957,22 @@ def main():
     parser.add_argument("--daytime-weight", type=float, default=1.35)
     parser.add_argument("--evening-weight", type=float, default=1.35)
     parser.add_argument("--low-price-weight", type=float, default=1.45)
+    parser.add_argument("--daytime-low-weight", type=float, default=1.35)
     parser.add_argument("--high-price-weight", type=float, default=1.45)
+    parser.add_argument("--low-rel-weight", type=float, default=0.04)
+    parser.add_argument("--daytime-low-rel-weight", type=float, default=0.06)
     parser.add_argument("--low-bce-weight", type=float, default=0.05)
+    parser.add_argument("--daytime-low-bce-weight", type=float, default=0.04)
     parser.add_argument("--high-bce-weight", type=float, default=0.05)
+    parser.add_argument("--blend-mode", choices=["hour", "hour-low"], default="hour-low")
+    parser.add_argument("--low-blend-prob-threshold", type=float, default=0.45)
+    parser.add_argument("--min-low-blend-rows", type=int, default=8)
     args = parser.parse_args()
 
     config = ExperimentConfig(
         history_len=args.history_len,
         epochs=args.epochs,
+        patience=args.patience,
         val_days=args.val_days,
         hidden_dim=args.hidden_dim,
         dropout=args.dropout,
@@ -889,9 +982,16 @@ def main():
         daytime_weight=args.daytime_weight,
         evening_weight=args.evening_weight,
         low_price_weight=args.low_price_weight,
+        daytime_low_weight=args.daytime_low_weight,
         high_price_weight=args.high_price_weight,
+        low_rel_weight=args.low_rel_weight,
+        daytime_low_rel_weight=args.daytime_low_rel_weight,
         low_bce_weight=args.low_bce_weight,
+        daytime_low_bce_weight=args.daytime_low_bce_weight,
         high_bce_weight=args.high_bce_weight,
+        blend_mode=args.blend_mode,
+        low_blend_prob_threshold=args.low_blend_prob_threshold,
+        min_low_blend_rows=args.min_low_blend_rows,
     )
     seed_everything(config.seed)
     experiment_id = args.experiment_id or make_experiment_id(config)
@@ -938,6 +1038,9 @@ def main():
     )
     blend = tune_blend_weights(val_predictions, config)
     print(f"blend global_tree_weight={blend['global_tree_weight']:.3f}")
+    if blend.get("daytime_low_tree_weight"):
+        print(f"blend daytime_low_tree_weight={blend['daytime_low_tree_weight']}")
+        print(f"blend daytime_low_counts={blend.get('daytime_low_counts', {})}")
 
     test_predictions = predict_arrays(model, test_arrays, device, config.batch_size)
     test_predictions = apply_blend(test_predictions, blend)

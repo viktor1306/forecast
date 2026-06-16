@@ -5597,3 +5597,1589 @@
 - Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_daybias31_hb22_midday_d8_b050_abs250_v1_predictions.csv`
 - Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_daybias31_hb22_midday_d8_b050_abs250_v1_metrics.json`
 - Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_daybias31_hb22_midday_d8_b050_abs250_v1_plot.png`
+
+### tcn_lowregime_smoke_v1
+
+- Split: train days `752`, val days `45`, test days `93`.
+- Test starts from day `2026-03-16`; evaluator uses one row per factual hour.
+- Tree teacher source: `current`.
+- History features `145`, future features `138`.
+- Anti-leakage: future raw market columns are excluded; future lag columns with lag < 24 are rejected; scalers fit on train only.
+- Model: TCN residual-log hybrid, hidden `96`, history `168`, dropout `0.18`.
+- Weights: daytime `1.45`, evening `1.35`, low-price `1.7`, daytime-low `1.8`, high-price `1.45`, low rel `0.06`, daytime-low rel `0.1`, low BCE `0.06`, daytime-low BCE `0.08`, high BCE `0.05`.
+- Blend: mode `hour-low`, daytime-low probability threshold `0.4`, minimum rows `4`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_base_pred` | 11.10% | 30.37% | 2209 |
+| `tree_recent_calibrated_pred` | 9.75% | 20.27% | 2209 |
+| `neural_pred` | 21.39% | 65.32% | 2209 |
+| `hybrid_pred` | 12.98% | 39.95% | 2209 |
+| `hybrid_recent_calibrated_pred` | 10.83% | 23.98% | 2209 |
+| `hybrid_guarded_pred` | 10.34% | 20.27% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tcn_lowregime_smoke_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tcn_lowregime_smoke_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tcn_lowregime_smoke_v1_plot.png`
+
+### tcn_lowregime_hourlow_v1
+
+- Split: train days `752`, val days `45`, test days `93`.
+- Test starts from day `2026-03-16`; evaluator uses one row per factual hour.
+- Tree teacher source: `current`.
+- History features `145`, future features `138`.
+- Anti-leakage: future raw market columns are excluded; future lag columns with lag < 24 are rejected; scalers fit on train only.
+- Model: TCN residual-log hybrid, hidden `112`, history `168`, dropout `0.2`.
+- Weights: daytime `1.55`, evening `1.25`, low-price `1.9`, daytime-low `2.2`, high-price `1.35`, low rel `0.08`, daytime-low rel `0.14`, low BCE `0.07`, daytime-low BCE `0.1`, high BCE `0.04`.
+- Blend: mode `hour-low`, daytime-low probability threshold `0.4`, minimum rows `4`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_base_pred` | 11.10% | 30.37% | 2209 |
+| `tree_recent_calibrated_pred` | 9.75% | 20.27% | 2209 |
+| `neural_pred` | 17.96% | 62.53% | 2209 |
+| `hybrid_pred` | 13.28% | 43.54% | 2209 |
+| `hybrid_recent_calibrated_pred` | 10.84% | 25.33% | 2209 |
+| `hybrid_guarded_pred` | 10.16% | 20.27% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tcn_lowregime_hourlow_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tcn_lowregime_hourlow_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tcn_lowregime_hourlow_v1_plot.png`
+
+### lowcheck_hgb_daybias31_ratio_b005_v1
+
+- Input experiment: `daybias31_hb22_midday_d8_b050_abs250_v1`.
+- Nonlinear rolling-origin stacker: model `hgb`, source `daybias31_hb22_midday_d8_b050_abs250_pred`, target `ratio`, lookback `45` days, min train `21` days, blend `0.05`, apply recent days `93`.
+- Applied target days: `72`.
+- For each target day, training rows are strictly earlier than that day.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.16% | 20.13% | 2209 |
+| `daybias31_hb22_midday_d8_b050_abs250_pred` | 5.99% | 10.31% | 2209 |
+| `lowcheck_hgb_ratio_b005_pred` | 6.70% | 11.88% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcheck_hgb_daybias31_ratio_b005_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcheck_hgb_daybias31_ratio_b005_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcheck_hgb_daybias31_ratio_b005_v1_plot.png`
+
+### mlp_lowday_daybias31_logresid_b010_v1
+
+- Input experiment: `daybias31_hb22_midday_d8_b050_abs250_v1`.
+- Nonlinear rolling-origin stacker: model `mlp`, source `daybias31_hb22_midday_d8_b050_abs250_pred`, target `logresid`, lookback `60` days, min train `24` days, blend `0.1`, apply recent days `93`.
+- Focus weights/gate: low `2.3`, daytime-low `2.5`, daytime `1.5`, evening `1.0`, apply hours `10-16`, source range `0.0`-`2500.0`.
+- Applied target days: `62`.
+- For each target day, training rows are strictly earlier than that day.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.16% | 20.13% | 2209 |
+| `daybias31_hb22_midday_d8_b050_abs250_pred` | 5.99% | 10.31% | 2209 |
+| `mlp_lowday_logresid_b010_pred` | 5.99% | 10.24% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b010_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b010_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b010_v1_plot.png`
+
+### mlp_lowday_daybias31_logresid_b015_v1
+
+- Input experiment: `daybias31_hb22_midday_d8_b050_abs250_v1`.
+- Nonlinear rolling-origin stacker: model `mlp`, source `daybias31_hb22_midday_d8_b050_abs250_pred`, target `logresid`, lookback `60` days, min train `24` days, blend `0.15`, apply recent days `93`.
+- Focus weights/gate: low `2.3`, daytime-low `2.5`, daytime `1.5`, evening `1.0`, apply hours `10-16`, source range `0.0`-`2500.0`.
+- Applied target days: `62`.
+- For each target day, training rows are strictly earlier than that day.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.16% | 20.13% | 2209 |
+| `daybias31_hb22_midday_d8_b050_abs250_pred` | 5.99% | 10.31% | 2209 |
+| `mlp_lowday_logresid_b015_pred` | 6.00% | 10.22% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b015_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b015_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b015_v1_plot.png`
+
+### mlp_lowday_daybias31_logresid_b012_v1
+
+- Input experiment: `daybias31_hb22_midday_d8_b050_abs250_v1`.
+- Nonlinear rolling-origin stacker: model `mlp`, source `daybias31_hb22_midday_d8_b050_abs250_pred`, target `logresid`, lookback `60` days, min train `24` days, blend `0.12`, apply recent days `93`.
+- Focus weights/gate: low `2.3`, daytime-low `2.5`, daytime `1.5`, evening `1.0`, apply hours `10-16`, source range `0.0`-`2500.0`.
+- Applied target days: `62`.
+- For each target day, training rows are strictly earlier than that day.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.16% | 20.13% | 2209 |
+| `daybias31_hb22_midday_d8_b050_abs250_pred` | 5.99% | 10.31% | 2209 |
+| `mlp_lowday_logresid_b012_pred` | 5.99% | 10.23% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b012_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b012_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b012_v1_plot.png`
+
+### mlp_lowday_daybias31_ratio_b010_v1
+
+- Input experiment: `daybias31_hb22_midday_d8_b050_abs250_v1`.
+- Nonlinear rolling-origin stacker: model `mlp`, source `daybias31_hb22_midday_d8_b050_abs250_pred`, target `ratio`, lookback `60` days, min train `24` days, blend `0.1`, apply recent days `93`.
+- Focus weights/gate: low `2.3`, daytime-low `2.5`, daytime `1.5`, evening `1.0`, apply hours `10-16`, source range `0.0`-`2500.0`.
+- Applied target days: `62`.
+- For each target day, training rows are strictly earlier than that day.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.16% | 20.13% | 2209 |
+| `daybias31_hb22_midday_d8_b050_abs250_pred` | 5.99% | 10.31% | 2209 |
+| `mlp_lowday_ratio_b010_pred` | 5.98% | 10.27% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_ratio_b010_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_ratio_b010_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_ratio_b010_v1_plot.png`
+
+### mlp_lowday_daybias31_logresid_b012_tight_v1
+
+- Input experiment: `daybias31_hb22_midday_d8_b050_abs250_v1`.
+- Nonlinear rolling-origin stacker: model `mlp`, source `daybias31_hb22_midday_d8_b050_abs250_pred`, target `logresid`, lookback `60` days, min train `24` days, blend `0.12`, apply recent days `93`.
+- Focus weights/gate: low `2.5`, daytime-low `3.0`, daytime `1.5`, evening `1.0`, apply hours `10-16`, source range `0.0`-`1800.0`.
+- Applied target days: `59`.
+- For each target day, training rows are strictly earlier than that day.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.16% | 20.13% | 2209 |
+| `daybias31_hb22_midday_d8_b050_abs250_pred` | 5.99% | 10.31% | 2209 |
+| `mlp_lowday_logresid_b012_tight_pred` | 5.99% | 10.32% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b012_tight_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b012_tight_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b012_tight_v1_plot.png`
+
+### mlp_lowday_daybias31_logresid_b010_floor_v1
+
+- Input experiment: `daybias31_hb22_midday_d8_b050_abs250_v1`.
+- Nonlinear rolling-origin stacker: model `mlp`, source `daybias31_hb22_midday_d8_b050_abs250_pred`, target `logresid`, lookback `60` days, min train `24` days, blend `0.1`, apply recent days `93`.
+- Focus weights/gate: low `2.3`, daytime-low `2.5`, daytime `1.5`, evening `1.0`, apply hours `10-16`, source range `0.0`-`2500.0`.
+- Applied target days: `62`.
+- For each target day, training rows are strictly earlier than that day.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.16% | 20.13% | 2209 |
+| `daybias31_hb22_midday_d8_b050_abs250_pred` | 5.99% | 10.31% | 2209 |
+| `mlp_lowday_logresid_b010_floor_pred` | 5.99% | 10.25% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b010_floor_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b010_floor_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_logresid_b010_floor_v1_plot.png`
+
+### mlp_daylowmid_daybias31_logresid_b006_v1
+
+- Input experiment: `daybias31_hb22_midday_d8_b050_abs250_v1`.
+- Nonlinear rolling-origin stacker: model `mlp`, source `daybias31_hb22_midday_d8_b050_abs250_pred`, target `logresid`, lookback `60` days, min train `24` days, blend `0.06`, apply recent days `93`.
+- Focus weights/gate: low `2.0`, daytime-low `2.3`, daytime `1.6`, evening `1.0`, apply hours `9-17`, source range `0.0`-`4000.0`.
+- Applied target days: `68`.
+- For each target day, training rows are strictly earlier than that day.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.16% | 20.13% | 2209 |
+| `daybias31_hb22_midday_d8_b050_abs250_pred` | 5.99% | 10.31% | 2209 |
+| `mlp_daylowmid_logresid_b006_pred` | 6.00% | 10.29% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_daylowmid_daybias31_logresid_b006_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_daylowmid_daybias31_logresid_b006_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_daylowmid_daybias31_logresid_b006_v1_plot.png`
+
+### mlp_lowday_daybias31_log_b010_floor_v1
+
+- Input experiment: `daybias31_hb22_midday_d8_b050_abs250_v1`.
+- Nonlinear rolling-origin stacker: model `mlp`, source `daybias31_hb22_midday_d8_b050_abs250_pred`, target `log`, lookback `60` days, min train `24` days, blend `0.1`, apply recent days `93`.
+- Focus weights/gate: low `2.3`, daytime-low `2.5`, daytime `1.5`, evening `1.0`, apply hours `10-16`, source range `0.0`-`2500.0`.
+- Applied target days: `62`.
+- For each target day, training rows are strictly earlier than that day.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.16% | 20.13% | 2209 |
+| `daybias31_hb22_midday_d8_b050_abs250_pred` | 5.99% | 10.31% | 2209 |
+| `mlp_lowday_log_b010_floor_pred` | 7.80% | 17.28% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_log_b010_floor_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_log_b010_floor_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_mlp_lowday_daybias31_log_b010_floor_v1_plot.png`
+
+### lowcollapse_et_floor10_th070_v1
+
+- Input experiment: `daybias31_hb22_midday_d8_b050_abs250_v1`.
+- Rolling-origin low-collapse classifier adjuster: classifier `et`, target `collapse100`, source `daybias31_hb22_midday_d8_b050_abs250_pred`, anchor `floor10`, probability threshold `0.7`, alpha `1.0`, hours `10-16`.
+- For each delivery day, classifier training rows are strictly earlier than that day; current-row actual is not exposed as a feature.
+- Adjusted rows: `177`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `daybias31_hb22_midday_d8_b050_abs250_pred` | 5.9866% | 10.3012% | 2209 |
+| `lowcollapse_et_floor10_th070_pred` | 5.9759% | 10.2628% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcollapse_et_floor10_th070_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcollapse_et_floor10_th070_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcollapse_et_floor10_th070_v1_plot.png`
+
+### lowcollapse_after_mlp_lowday_th070_v1
+
+- Input experiment: `mlp_lowday_daybias31_logresid_b010_floor_v1`.
+- Rolling-origin low-collapse classifier adjuster: classifier `et`, target `collapse100`, source `mlp_lowday_logresid_b010_floor_pred`, anchor `floor10`, probability threshold `0.7`, alpha `1.0`, hours `10-16`.
+- For each delivery day, classifier training rows are strictly earlier than that day; current-row actual is not exposed as a feature.
+- Adjusted rows: `177`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `mlp_lowday_logresid_b010_floor_pred` | 5.9859% | 10.2450% | 2209 |
+| `lowcollapse_after_mlp_lowday_th070_pred` | 5.9759% | 10.2063% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcollapse_after_mlp_lowday_th070_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcollapse_after_mlp_lowday_th070_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcollapse_after_mlp_lowday_th070_v1_plot.png`
+
+### lowcollapse_after_mlp_lowday_th065_v1
+
+- Input experiment: `mlp_lowday_daybias31_logresid_b010_floor_v1`.
+- Rolling-origin low-collapse classifier adjuster: classifier `et`, target `collapse100`, source `mlp_lowday_logresid_b010_floor_pred`, anchor `floor10`, probability threshold `0.65`, alpha `1.0`, hours `10-16`.
+- For each delivery day, classifier training rows are strictly earlier than that day; current-row actual is not exposed as a feature.
+- Adjusted rows: `186`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `mlp_lowday_logresid_b010_floor_pred` | 5.9859% | 10.2450% | 2209 |
+| `lowcollapse_after_mlp_lowday_th065_pred` | 5.9718% | 10.2060% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcollapse_after_mlp_lowday_th065_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcollapse_after_mlp_lowday_th065_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcollapse_after_mlp_lowday_th065_v1_plot.png`
+
+### rebound_roll7h_after_lowcollapse_mlp_v1
+
+- Input experiment: `lowcollapse_after_mlp_lowday_th065_v1`.
+- Forecast-time rebound profile adjuster: source `lowcollapse_after_mlp_lowday_th065_pred`, candidate `f_rolling_mean_hour_7d`, alpha `0.08`, hours `10-13`, source range `0.0`-`2000.0`, rolling24 min `6000.0`, rolling24-hour7 diff min `3500.0`.
+- Uses only forecast-time lag/rolling profile features; no target-day actuals enter the signal.
+- Adjusted rows: `74`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `lowcollapse_after_mlp_lowday_th065_pred` | 5.9718% | 10.2060% | 2209 |
+| `rebound_roll7h_after_lowcollapse_mlp_pred` | 5.9624% | 10.1930% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rebound_roll7h_after_lowcollapse_mlp_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rebound_roll7h_after_lowcollapse_mlp_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rebound_roll7h_after_lowcollapse_mlp_v1_plot.png`
+
+### h0_lag48_down_after_rebound_lowcollapse_v1
+
+- Input experiment: `rebound_roll7h_after_lowcollapse_mlp_v1`.
+- Forecast-time rebound profile adjuster: source `rebound_roll7h_after_lowcollapse_mlp_pred`, candidate `f_price_lag_48`, alpha `0.5`, hours `0`, source range `3000.0`-`9000.0`, rolling24 min `0.0`, rolling24-hour7 diff min `0.0`, candidate direction `down`, candidate absdiff min `0.0`.
+- Uses only forecast-time lag/rolling profile features; no target-day actuals enter the signal.
+- Adjusted rows: `21`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `rebound_roll7h_after_lowcollapse_mlp_pred` | 5.9624% | 10.1930% | 2209 |
+| `h0_lag48_down_after_rebound_lowcollapse_pred` | 5.9887% | 10.0676% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_h0_lag48_down_after_rebound_lowcollapse_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_h0_lag48_down_after_rebound_lowcollapse_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_h0_lag48_down_after_rebound_lowcollapse_v1_plot.png`
+
+### h9_10_lag48_down_after_h0_v1
+
+- Input experiment: `h0_lag48_down_after_rebound_lowcollapse_v1`.
+- Forecast-time rebound profile adjuster: source `h0_lag48_down_after_rebound_lowcollapse_pred`, candidate `f_price_lag_48`, alpha `0.05`, hours `9-10`, source range `3000.0`-`9000.0`, rolling24 min `0.0`, rolling24-hour7 diff min `0.0`, candidate direction `down`, candidate absdiff min `2500.0`.
+- Uses only forecast-time lag/rolling profile features; no target-day actuals enter the signal.
+- Adjusted rows: `38`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `h0_lag48_down_after_rebound_lowcollapse_pred` | 5.9887% | 10.0676% | 2209 |
+| `h9_10_lag48_down_after_h0_pred` | 5.9905% | 10.0163% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_h9_10_lag48_down_after_h0_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_h9_10_lag48_down_after_h0_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_h9_10_lag48_down_after_h0_v1_plot.png`
+
+### lowday_roll7_down_after_h9h0_v1
+
+- Input experiment: `h9_10_lag48_down_after_h0_v1`.
+- Forecast-time rebound profile adjuster: source `h9_10_lag48_down_after_h0_pred`, candidate `f_rolling_mean_hour_7d`, alpha `1.0`, hours `11-15`, source range `0.0`-`1000.0`, rolling24 min `0.0`, rolling24-hour7 diff min `0.0`, candidate direction `down`, candidate absdiff min `0.0`.
+- Uses only forecast-time lag/rolling profile features; no target-day actuals enter the signal.
+- Adjusted rows: `14`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `h9_10_lag48_down_after_h0_pred` | 5.9905% | 10.0163% | 2209 |
+| `lowday_roll7_down_after_h9h0_pred` | 5.9867% | 9.9855% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowday_roll7_down_after_h9h0_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowday_roll7_down_after_h9h0_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowday_roll7_down_after_h9h0_v1_plot.png`
+
+### lag24_up_after_14d_lowday_v1
+
+- Input experiment: `lowday_roll7_down_after_h9h0_v1`.
+- Forecast-time rebound profile adjuster: source `lowday_roll7_down_after_h9h0_pred`, candidate `f_price_lag_24`, alpha `0.02`, hours `all`, source range `3000.0`-`9000.0`, rolling24 min `0.0`, rolling24-hour7 diff min `0.0`, candidate direction `up`, candidate absdiff min `3500.0`.
+- Uses only forecast-time lag/rolling profile features; no target-day actuals enter the signal.
+- Adjusted rows: `71`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `lowday_roll7_down_after_h9h0_pred` | 5.9867% | 9.9855% | 2209 |
+| `lag24_up_after_14d_lowday_pred` | 5.9761% | 9.9647% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lag24_up_after_14d_lowday_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lag24_up_after_14d_lowday_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lag24_up_after_14d_lowday_v1_plot.png`
+
+### tree_recent_shiftblend_after_14d_lowday_v1
+
+- Input experiment: `lag24_up_after_14d_lowday_v1`.
+- Shifted candidate-blend adjuster: source `lag24_up_after_14d_lowday_pred`, candidate `tree_recent_calibrated_pred`, group `hour`, rolling group observations `3`, stat `mean`, advantage threshold `0.0`, hours `all`, distance `le_abs` `2000.0`, alpha `0.2`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `742`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `lag24_up_after_14d_lowday_pred` | 5.9761% | 9.9647% | 2209 |
+| `tree_recent_shiftblend_after_14d_lowday_pred` | 5.9087% | 9.9911% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_shiftblend_after_14d_lowday_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_shiftblend_after_14d_lowday_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_shiftblend_after_14d_lowday_v1_plot.png`
+
+### tree_recent_peakerr_shiftblend_after_target_v1
+
+- Input experiment: `tree_recent_shiftblend_after_14d_lowday_v1`.
+- Shifted candidate-blend adjuster: source `tree_recent_shiftblend_after_14d_lowday_pred`, candidate `tree_recent_calibrated_pred`, group `hour`, rolling group observations `13`, stat `mean`, advantage threshold `0.0`, hours `peakerr`, distance `le_abs` `1000.0`, alpha `0.3`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `282`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `tree_recent_shiftblend_after_14d_lowday_pred` | 5.9087% | 9.9911% | 2209 |
+| `tree_recent_peakerr_shiftblend_after_target_pred` | 5.8762% | 9.9946% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_peakerr_shiftblend_after_target_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_peakerr_shiftblend_after_target_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_peakerr_shiftblend_after_target_v1_plot.png`
+
+### ratio_hour_bias_after_peakblend_v1
+
+- Input experiment: `tree_recent_peakerr_shiftblend_after_target_v1`.
+- Shifted group-bias adjuster: source `tree_recent_peakerr_shiftblend_after_target_pred`, group `hour,source_ratio_bin`, source bins `-1,50,250,500,1000,3000,7000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `5`, stat `median`, beta `0.1`, hours `all`, gate `absbias` threshold `400.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `235`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `tree_recent_peakerr_shiftblend_after_target_pred` | 5.8762% | 9.9946% | 2209 |
+| `ratio_hour_bias_after_peakblend_pred` | 5.8543% | 9.9507% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ratio_hour_bias_after_peakblend_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ratio_hour_bias_after_peakblend_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ratio_hour_bias_after_peakblend_v1_plot.png`
+
+### tree_recent_peakerr_srcbin_after_ratiobias_v1
+
+- Input experiment: `ratio_hour_bias_after_peakblend_v1`.
+- Shifted candidate-blend adjuster: source `ratio_hour_bias_after_peakblend_pred`, candidate `tree_recent_calibrated_pred`, group `hour,source_bin`, rolling group observations `13`, stat `median`, advantage threshold `0.0`, hours `peakerr`, distance `le_abs` `500.0`, alpha `0.3`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `293`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `ratio_hour_bias_after_peakblend_pred` | 5.8543% | 9.9507% | 2209 |
+| `tree_recent_peakerr_srcbin_after_ratiobias_pred` | 5.8250% | 9.9839% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_peakerr_srcbin_after_ratiobias_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_peakerr_srcbin_after_ratiobias_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_peakerr_srcbin_after_ratiobias_v1_plot.png`
+
+### evening_month_bias_after_srcbin_v1
+
+- Input experiment: `tree_recent_peakerr_srcbin_after_ratiobias_v1`.
+- Shifted group-bias adjuster: source `tree_recent_peakerr_srcbin_after_ratiobias_pred`, group `hour,month`, source bins `-1,50,250,500,1000,3000,7000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `21`, stat `median`, beta `0.1`, hours `evening`, gate `absbias` threshold `200.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `57`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `tree_recent_peakerr_srcbin_after_ratiobias_pred` | 5.8250% | 9.9839% | 2209 |
+| `evening_month_bias_after_srcbin_pred` | 5.8200% | 9.9513% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_evening_month_bias_after_srcbin_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_evening_month_bias_after_srcbin_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_evening_month_bias_after_srcbin_v1_plot.png`
+
+### hgb_midhigh_resid_after_eveningmonth_v1
+
+- Input experiment: `evening_month_bias_after_srcbin_v1`.
+- Nonlinear rolling-origin stacker: model `hgb`, source `evening_month_bias_after_srcbin_pred`, target `resid`, lookback `60` days, min train `24` days, blend `0.08`, apply recent days `93`.
+- Focus weights/gate: low `1.0`, daytime-low `1.0`, daytime `1.1`, evening `1.2`, apply hours `all`, source range `3000.0`-`15000.0`.
+- Source-error anomaly weighting: train-day WMAPE quantile `0.9`, outlier weight `0.4`.
+- Applied target days: `69`.
+- For each target day, training rows are strictly earlier than that day.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.16% | 20.13% | 2209 |
+| `evening_month_bias_after_srcbin_pred` | 5.82% | 9.95% | 2209 |
+| `hgb_midhigh_resid_after_eveningmonth_pred` | 5.82% | 9.96% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_hgb_midhigh_resid_after_eveningmonth_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_hgb_midhigh_resid_after_eveningmonth_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_hgb_midhigh_resid_after_eveningmonth_v1_plot.png`
+
+### tree_recent_evening_ratio_after_hgb_v1
+
+- Input experiment: `hgb_midhigh_resid_after_eveningmonth_v1`.
+- Shifted candidate-blend adjuster: source `hgb_midhigh_resid_after_eveningmonth_pred`, candidate `tree_recent_calibrated_pred`, group `hour,source_ratio_bin`, rolling group observations `21`, stat `mean`, advantage threshold `0.0`, hours `evening`, distance `le_abs` `500.0`, alpha `0.3`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `225`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `hgb_midhigh_resid_after_eveningmonth_pred` | 5.8161% | 9.9577% | 2209 |
+| `tree_recent_evening_ratio_after_hgb_pred` | 5.7943% | 9.9623% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_evening_ratio_after_hgb_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_evening_ratio_after_hgb_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_evening_ratio_after_hgb_v1_plot.png`
+
+### night_weekend_bias_after_evening_hgb_v1
+
+- Input experiment: `tree_recent_evening_ratio_after_hgb_v1`.
+- Shifted group-bias adjuster: source `tree_recent_evening_ratio_after_hgb_pred`, group `hour,weekend`, source bins `-1,50,250,500,1000,3000,7000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `21`, stat `mean`, beta `0.3`, hours `night`, gate `wmape` threshold `30.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `60`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `tree_recent_evening_ratio_after_hgb_pred` | 5.7943% | 9.9623% | 2209 |
+| `night_weekend_bias_after_evening_hgb_pred` | 5.7898% | 9.9367% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_weekend_bias_after_evening_hgb_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_weekend_bias_after_evening_hgb_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_weekend_bias_after_evening_hgb_v1_plot.png`
+
+### tree_recent_evening_srcbin_after_night_v1
+
+- Input experiment: `night_weekend_bias_after_evening_hgb_v1`.
+- Shifted candidate-blend adjuster: source `night_weekend_bias_after_evening_hgb_pred`, candidate `tree_recent_calibrated_pred`, group `hour,source_bin`, rolling group observations `5`, stat `mean`, advantage threshold `0.0`, hours `evening`, distance `le_abs` `2000.0`, alpha `0.3`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `217`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `night_weekend_bias_after_evening_hgb_pred` | 5.7898% | 9.9367% | 2209 |
+| `tree_recent_evening_srcbin_after_night_pred` | 5.7688% | 9.9568% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_evening_srcbin_after_night_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_evening_srcbin_after_night_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_evening_srcbin_after_night_v1_plot.png`
+
+### lowcollapse_lowday_blend_after_evening_srcbin_v1
+
+- Input experiment: `tree_recent_evening_srcbin_after_night_v1`.
+- Forecast-time rebound profile adjuster: source `tree_recent_evening_srcbin_after_night_pred`, candidate `lowcollapse_after_mlp_lowday_th065_pred`, alpha `0.8`, hours `10-13`, source range `0.0`-`500.0`, rolling24 min `0.0`, rolling24-hour7 diff min `0.0`, candidate direction `any`, candidate absdiff min `0.0`.
+- Uses only forecast-time lag/rolling profile features; no target-day actuals enter the signal.
+- Adjusted rows: `138`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_evening_srcbin_after_night_pred` | 5.7688% | 9.9568% | 2209 |
+| `lowcollapse_lowday_blend_after_evening_srcbin_pred` | 5.7568% | 9.9580% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcollapse_lowday_blend_after_evening_srcbin_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcollapse_lowday_blend_after_evening_srcbin_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_lowcollapse_lowday_blend_after_evening_srcbin_v1_plot.png`
+
+### night_ratio_bias_after_lowday_blend_v1
+
+- Input experiment: `lowcollapse_lowday_blend_after_evening_srcbin_v1`.
+- Shifted group-bias adjuster: source `lowcollapse_lowday_blend_after_evening_srcbin_pred`, group `hour,source_ratio_bin`, source bins `-1,50,250,500,1000,3000,7000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `13`, stat `median`, beta `0.15`, hours `night`, gate `absbias` threshold `400.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `52`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `lowcollapse_lowday_blend_after_evening_srcbin_pred` | 5.7568% | 9.9580% | 2209 |
+| `night_ratio_bias_after_lowday_blend_pred` | 5.7520% | 9.9625% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_ratio_bias_after_lowday_blend_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_ratio_bias_after_lowday_blend_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_ratio_bias_after_lowday_blend_v1_plot.png`
+
+### ridge_resid_after_lowday_night_v1
+
+- Input experiment: `night_ratio_bias_after_lowday_blend_v1`.
+- Rolling-origin stacker: source `night_ratio_bias_after_lowday_blend_pred`, target `resid`, lookback `45` days, min train `21` days, alpha `50.0`, blend `0.05`, apply recent days `93`.
+- Applied target days: `72`.
+- For each target day, training rows are strictly earlier than that day.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.16% | 20.13% | 2209 |
+| `night_ratio_bias_after_lowday_blend_pred` | 5.75% | 9.96% | 2209 |
+| `ridge_resid_after_lowday_night_pred` | 5.77% | 10.05% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ridge_resid_after_lowday_night_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ridge_resid_after_lowday_night_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ridge_resid_after_lowday_night_v1_plot.png`
+
+### ridge_logresid_after_lowday_night_v1
+
+- Input experiment: `night_ratio_bias_after_lowday_blend_v1`.
+- Rolling-origin stacker: source `night_ratio_bias_after_lowday_blend_pred`, target `logresid`, lookback `60` days, min train `24` days, alpha `100.0`, blend `0.03`, apply recent days `93`.
+- Applied target days: `69`.
+- For each target day, training rows are strictly earlier than that day.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.16% | 20.13% | 2209 |
+| `night_ratio_bias_after_lowday_blend_pred` | 5.75% | 9.96% | 2209 |
+| `ridge_logresid_after_lowday_night_pred` | 5.82% | 10.08% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ridge_logresid_after_lowday_night_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ridge_logresid_after_lowday_night_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ridge_logresid_after_lowday_night_v1_plot.png`
+
+### midday_srcbin_bias_after_lowday_night_v1
+
+- Input experiment: `night_ratio_bias_after_lowday_blend_v1`.
+- Shifted group-bias adjuster: source `night_ratio_bias_after_lowday_blend_pred`, group `hour,source_bin`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `21`, stat `median`, beta `0.12`, hours `7-18`, gate `wmape` threshold `8.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `451`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `night_ratio_bias_after_lowday_blend_pred` | 5.7520% | 9.9625% | 2209 |
+| `midday_srcbin_bias_after_lowday_night_pred` | 5.7411% | 9.9588% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_midday_srcbin_bias_after_lowday_night_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_midday_srcbin_bias_after_lowday_night_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_midday_srcbin_bias_after_lowday_night_v1_plot.png`
+
+### tree_evening_ratio_blend_after_midday_srcbin_v1
+
+- Input experiment: `midday_srcbin_bias_after_lowday_night_v1`.
+- Shifted candidate-blend adjuster: source `midday_srcbin_bias_after_lowday_night_pred`, candidate `tree_recent_calibrated_pred`, group `hour,source_ratio_bin`, rolling group observations `8`, stat `mean`, advantage threshold `0.0`, hours `evening`, distance `le_abs` `2000.0`, alpha `0.5`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `209`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `midday_srcbin_bias_after_lowday_night_pred` | 5.7411% | 9.9588% | 2209 |
+| `tree_evening_ratio_blend_after_midday_srcbin_pred` | 5.7029% | 9.9616% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_evening_ratio_blend_after_midday_srcbin_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_evening_ratio_blend_after_midday_srcbin_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_evening_ratio_blend_after_midday_srcbin_v1_plot.png`
+
+### day_absbias_repair_after_evening_blend_v1
+
+- Input experiment: `tree_evening_ratio_blend_after_midday_srcbin_v1`.
+- Shifted group-bias adjuster: source `tree_evening_ratio_blend_after_midday_srcbin_pred`, group `hour,source_bin`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `3`, stat `median`, beta `0.2`, hours `10-15`, gate `absbias` threshold `400.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `40`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `tree_evening_ratio_blend_after_midday_srcbin_pred` | 5.7029% | 9.9616% | 2209 |
+| `day_absbias_repair_after_evening_blend_pred` | 5.6987% | 9.9494% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day_absbias_repair_after_evening_blend_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day_absbias_repair_after_evening_blend_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day_absbias_repair_after_evening_blend_v1_plot.png`
+
+### tree_day_srcbin_blend_after_absbias_v1
+
+- Input experiment: `day_absbias_repair_after_evening_blend_v1`.
+- Shifted candidate-blend adjuster: source `day_absbias_repair_after_evening_blend_pred`, candidate `tree_recent_calibrated_pred`, group `hour,source_bin`, rolling group observations `13`, stat `median`, advantage threshold `0.0`, hours `10-17`, distance `le_abs` `250.0`, alpha `0.7`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `236`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `day_absbias_repair_after_evening_blend_pred` | 5.6987% | 9.9494% | 2209 |
+| `tree_day_srcbin_blend_after_absbias_pred` | 5.6614% | 9.9688% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_day_srcbin_blend_after_absbias_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_day_srcbin_blend_after_absbias_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_day_srcbin_blend_after_absbias_v1_plot.png`
+
+### day_absbias_repair_after_tree_day_blend_v1
+
+- Input experiment: `tree_day_srcbin_blend_after_absbias_v1`.
+- Shifted group-bias adjuster: source `tree_day_srcbin_blend_after_absbias_pred`, group `hour,source_bin`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `3`, stat `median`, beta `0.2`, hours `10-15`, gate `absbias` threshold `400.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `35`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `tree_day_srcbin_blend_after_absbias_pred` | 5.6614% | 9.9688% | 2209 |
+| `day_absbias_repair_after_tree_day_blend_pred` | 5.6569% | 9.9598% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day_absbias_repair_after_tree_day_blend_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day_absbias_repair_after_tree_day_blend_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day_absbias_repair_after_tree_day_blend_v1_plot.png`
+
+### hgb_midhigh_resid_after_tree_day_blend_v1
+
+- Input experiment: `day_absbias_repair_after_tree_day_blend_v1`.
+- Nonlinear rolling-origin stacker: model `hgb`, source `day_absbias_repair_after_tree_day_blend_pred`, target `resid`, lookback `75` days, min train `28` days, blend `0.08`, apply recent days `93`.
+- Focus weights/gate: low `1.0`, daytime-low `1.0`, daytime `1.1`, evening `1.1`, apply hours `all`, source range `1000.0`-`15000.0`.
+- Source-error anomaly weighting: train-day WMAPE quantile `0.9`, outlier weight `0.5`.
+- Applied target days: `65`.
+- For each target day, training rows are strictly earlier than that day.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.16% | 20.13% | 2209 |
+| `day_absbias_repair_after_tree_day_blend_pred` | 5.66% | 9.96% | 2209 |
+| `hgb_midhigh_resid_after_tree_day_blend_pred` | 5.66% | 9.97% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_hgb_midhigh_resid_after_tree_day_blend_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_hgb_midhigh_resid_after_tree_day_blend_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_hgb_midhigh_resid_after_tree_day_blend_v1_plot.png`
+
+### ensemble_night_blend_after_day_repair_v1
+
+- Input experiment: `day_absbias_repair_after_tree_day_blend_v1`.
+- Shifted candidate-blend adjuster: source `day_absbias_repair_after_tree_day_blend_pred`, candidate `ensemble_hybrid_guarded_pred`, group `hour`, rolling group observations `3`, stat `mean`, advantage threshold `150.0`, hours `night`, distance `le_abs` `1000.0`, alpha `0.7`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `54`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `day_absbias_repair_after_tree_day_blend_pred` | 5.6569% | 9.9598% | 2209 |
+| `ensemble_hybrid_guarded_pred` | 8.4885% | 20.1281% | 2209 |
+| `ensemble_night_blend_after_day_repair_pred` | 5.6309% | 9.9365% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ensemble_night_blend_after_day_repair_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ensemble_night_blend_after_day_repair_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ensemble_night_blend_after_day_repair_v1_plot.png`
+
+### tree_close_hour_blend_after_ensemble_night_v1
+
+- Input experiment: `ensemble_night_blend_after_day_repair_v1`.
+- Shifted candidate-blend adjuster: source `ensemble_night_blend_after_day_repair_pred`, candidate `tree_recent_calibrated_pred`, group `hour`, rolling group observations `34`, stat `median`, advantage threshold `0.0`, hours `all`, distance `le_abs` `100.0`, alpha `0.7`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `386`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `ensemble_night_blend_after_day_repair_pred` | 5.6309% | 9.9365% | 2209 |
+| `tree_close_hour_blend_after_ensemble_night_pred` | 5.6160% | 9.9476% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_close_hour_blend_after_ensemble_night_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_close_hour_blend_after_ensemble_night_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_close_hour_blend_after_ensemble_night_v1_plot.png`
+
+### ensemble_night_diff_blend_after_tree_close_v1
+
+- Input experiment: `tree_close_hour_blend_after_ensemble_night_v1`.
+- Shifted candidate-blend adjuster: source `tree_close_hour_blend_after_ensemble_night_pred`, candidate `ensemble_hybrid_guarded_pred`, group `hour,diff_bin`, rolling group observations `5`, stat `mean`, advantage threshold `100.0`, hours `night`, distance `ge_abs` `500.0`, alpha `0.7`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `15`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `tree_close_hour_blend_after_ensemble_night_pred` | 5.6160% | 9.9476% | 2209 |
+| `ensemble_hybrid_guarded_pred` | 8.4885% | 20.1281% | 2209 |
+| `ensemble_night_diff_blend_after_tree_close_pred` | 5.6010% | 9.9408% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ensemble_night_diff_blend_after_tree_close_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ensemble_night_diff_blend_after_tree_close_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ensemble_night_diff_blend_after_tree_close_v1_plot.png`
+
+### ensemble_recent_overnight_spike_blend_v1
+
+- Input experiment: `ensemble_night_diff_blend_after_tree_close_v1`.
+- Shifted candidate-blend adjuster: source `ensemble_night_diff_blend_after_tree_close_pred`, candidate `ensemble_hybrid_recent_calibrated_pred`, group `hour,source_bin`, rolling group observations `3`, stat `mean`, advantage threshold `250.0`, hours `0-8`, distance `ge_abs` `1000.0`, alpha `0.7`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `2`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `ensemble_night_diff_blend_after_tree_close_pred` | 5.6010% | 9.9408% | 2209 |
+| `ensemble_hybrid_recent_calibrated_pred` | 8.5424% | 20.5296% | 2209 |
+| `ensemble_recent_overnight_spike_blend_pred` | 5.5822% | 9.8266% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ensemble_recent_overnight_spike_blend_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ensemble_recent_overnight_spike_blend_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ensemble_recent_overnight_spike_blend_v1_plot.png`
+
+### h17_18_bias_after_overnight_spike_v1
+
+- Input experiment: `ensemble_recent_overnight_spike_blend_v1`.
+- Shifted group-bias adjuster: source `ensemble_recent_overnight_spike_blend_pred`, group `hour`, source bins `-1,50,250,500,1000,3000,7000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `13`, stat `median`, beta `0.3`, hours `17-18`, gate `wmape` threshold `8.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `5`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `ensemble_recent_overnight_spike_blend_pred` | 5.5822% | 9.8266% | 2209 |
+| `h17_18_bias_after_overnight_spike_pred` | 5.5773% | 9.8248% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_h17_18_bias_after_overnight_spike_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_h17_18_bias_after_overnight_spike_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_h17_18_bias_after_overnight_spike_v1_plot.png`
+
+### treebase_day_srcbin_blend_after_h17_v1
+
+- Input experiment: `h17_18_bias_after_overnight_spike_v1`.
+- Shifted candidate-blend adjuster: source `h17_18_bias_after_overnight_spike_pred`, candidate `tree_base_pred`, group `hour,source_bin`, rolling group observations `13`, stat `mean`, advantage threshold `25.0`, hours `10-17`, distance `le_abs` `500.0`, alpha `0.7`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `120`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `h17_18_bias_after_overnight_spike_pred` | 5.5773% | 9.8248% | 2209 |
+| `tree_base_pred` | 10.5336% | 30.3748% | 2209 |
+| `treebase_day_srcbin_blend_after_h17_pred` | 5.5655% | 9.8018% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_treebase_day_srcbin_blend_after_h17_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_treebase_day_srcbin_blend_after_h17_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_treebase_day_srcbin_blend_after_h17_v1_plot.png`
+
+### tree_recent_night_diff_after_treebase_day_v1
+
+- Input experiment: `treebase_day_srcbin_blend_after_h17_v1`.
+- Shifted candidate-blend adjuster: source `treebase_day_srcbin_blend_after_h17_pred`, candidate `tree_recent_calibrated_pred`, group `hour,diff_bin`, rolling group observations `3`, stat `median`, advantage threshold `250.0`, hours `night`, distance `ge_abs` `1000.0`, alpha `0.5`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `5`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `treebase_day_srcbin_blend_after_h17_pred` | 5.5655% | 9.8018% | 2209 |
+| `tree_recent_night_diff_after_treebase_day_pred` | 5.5511% | 9.8285% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_night_diff_after_treebase_day_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_night_diff_after_treebase_day_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_tree_recent_night_diff_after_treebase_day_v1_plot.png`
+
+### h17_18_bias_after_tree_recent_night_v1
+
+- Input experiment: `tree_recent_night_diff_after_treebase_day_v1`.
+- Shifted group-bias adjuster: source `tree_recent_night_diff_after_treebase_day_pred`, group `hour`, source bins `-1,50,250,500,1000,3000,7000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `21`, stat `median`, beta `0.3`, hours `17-18`, gate `wmape` threshold `6.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `3`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `tree_recent_night_diff_after_treebase_day_pred` | 5.5511% | 9.8285% | 2209 |
+| `h17_18_bias_after_tree_recent_night_pred` | 5.5470% | 9.8285% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_h17_18_bias_after_tree_recent_night_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_h17_18_bias_after_tree_recent_night_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_h17_18_bias_after_tree_recent_night_v1_plot.png`
+
+### ensemble_neural_morning_spike_after_h17_v1
+
+- Input experiment: `h17_18_bias_after_tree_recent_night_v1`.
+- Shifted candidate-blend adjuster: source `h17_18_bias_after_tree_recent_night_pred`, candidate `ensemble_neural_pred`, group `hour`, rolling group observations `3`, stat `median`, advantage threshold `25.0`, hours `7-10`, distance `ge_abs` `1000.0`, alpha `0.7`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `4`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `h17_18_bias_after_tree_recent_night_pred` | 5.5470% | 9.8285% | 2209 |
+| `ensemble_neural_pred` | 10.4135% | 29.8142% | 2209 |
+| `ensemble_neural_morning_spike_after_h17_pred` | 5.5207% | 9.6925% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ensemble_neural_morning_spike_after_h17_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ensemble_neural_morning_spike_after_h17_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_ensemble_neural_morning_spike_after_h17_v1_plot.png`
+
+### morning_weekend_srcbin_bias_after_neural_spike_v1
+
+- Input experiment: `ensemble_neural_morning_spike_after_h17_v1`.
+- Shifted group-bias adjuster: source `ensemble_neural_morning_spike_after_h17_pred`, group `hour,source_bin,weekend`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `5`, stat `mean`, beta `0.1`, hours `7-10`, gate `absbias` threshold `250.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `102`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `ensemble_neural_morning_spike_after_h17_pred` | 5.5207% | 9.6925% | 2209 |
+| `morning_weekend_srcbin_bias_after_neural_spike_pred` | 5.5156% | 9.7092% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_weekend_srcbin_bias_after_neural_spike_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_weekend_srcbin_bias_after_neural_spike_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_weekend_srcbin_bias_after_neural_spike_v1_plot.png`
+
+### rollingmin_morning_spike_after_bias_v1
+
+- Input experiment: `morning_weekend_srcbin_bias_after_neural_spike_v1`.
+- Shifted candidate-blend adjuster: source `morning_weekend_srcbin_bias_after_neural_spike_pred`, candidate `f_rolling_min_24`, group `hour,source_ratio_bin`, rolling group observations `3`, stat `median`, advantage threshold `400.0`, hours `7-10`, distance `ge_abs` `2000.0`, alpha `0.3`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `2`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `morning_weekend_srcbin_bias_after_neural_spike_pred` | 5.5156% | 9.7092% | 2209 |
+| `f_rolling_min_24` | 85.8228% | 86.4083% | 2209 |
+| `rollingmin_morning_spike_after_bias_pred` | 5.4949% | 9.5543% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rollingmin_morning_spike_after_bias_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rollingmin_morning_spike_after_bias_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rollingmin_morning_spike_after_bias_v1_plot.png`
+
+### treebase_day_ratio_blend_after_rollingmin_v1
+
+- Input experiment: `rollingmin_morning_spike_after_bias_v1`.
+- Shifted candidate-blend adjuster: source `rollingmin_morning_spike_after_bias_pred`, candidate `tree_base_pred`, group `hour,source_ratio_bin`, rolling group observations `34`, stat `mean`, advantage threshold `100.0`, hours `day`, distance `le_abs` `1000.0`, alpha `0.7`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `35`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `rollingmin_morning_spike_after_bias_pred` | 5.4949% | 9.5543% | 2209 |
+| `tree_base_pred` | 10.5336% | 30.3748% | 2209 |
+| `treebase_day_ratio_blend_after_rollingmin_pred` | 5.4883% | 9.5286% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_treebase_day_ratio_blend_after_rollingmin_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_treebase_day_ratio_blend_after_rollingmin_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_treebase_day_ratio_blend_after_rollingmin_v1_plot.png`
+
+### treebase_day10_17_ratio_blend_after_rollingmin_v1
+
+- Input experiment: `rollingmin_morning_spike_after_bias_v1`.
+- Shifted candidate-blend adjuster: source `rollingmin_morning_spike_after_bias_pred`, candidate `tree_base_pred`, group `hour,source_ratio_bin`, rolling group observations `34`, stat `mean`, advantage threshold `100.0`, hours `10-17`, distance `le_abs` `1000.0`, alpha `0.7`.
+- Formula: selected rows use `(1-alpha) * source + alpha * candidate`; selection uses shifted rolling historical candidate advantage in forecast-time groups only.
+- Adjusted rows: `59`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `rollingmin_morning_spike_after_bias_pred` | 5.4949% | 9.5543% | 2209 |
+| `tree_base_pred` | 10.5336% | 30.3748% | 2209 |
+| `treebase_day10_17_ratio_blend_after_rollingmin_pred` | 5.4791% | 9.5286% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_treebase_day10_17_ratio_blend_after_rollingmin_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_treebase_day10_17_ratio_blend_after_rollingmin_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_treebase_day10_17_ratio_blend_after_rollingmin_v1_plot.png`
+
+### morning_srcbin_bias_after_treebase_day_v1
+
+- Input experiment: `treebase_day10_17_ratio_blend_after_rollingmin_v1`.
+- Shifted group-bias adjuster: source `treebase_day10_17_ratio_blend_after_rollingmin_pred`, group `hour,source_bin`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `3`, stat `mean`, beta `0.12`, hours `7-10`, gate `absbias` threshold `250.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `130`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `treebase_day10_17_ratio_blend_after_rollingmin_pred` | 5.4791% | 9.5286% | 2209 |
+| `morning_srcbin_bias_after_treebase_day_pred` | 5.4698% | 9.5352% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_srcbin_bias_after_treebase_day_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_srcbin_bias_after_treebase_day_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_srcbin_bias_after_treebase_day_v1_plot.png`
+
+### multi_candidate_day_blend_after_morning_bias_v1
+
+- Input experiment: `morning_srcbin_bias_after_treebase_day_v1`.
+- Shifted multi-candidate blend adjuster: source `morning_srcbin_bias_after_treebase_day_pred`, candidates `tree_base_pred,tree_recent_calibrated_pred,ensemble_neural_pred,ensemble_hybrid_pred,ensemble_hybrid_guarded_pred,ensemble_hybrid_recent_calibrated_pred,rolling_stack_pred,groupbias3_market1_med_b010_night_abs150_pred,lag24blend1_daily2_night_a100_adv0_pred,f_price_lag_24,f_price_lag_48,f_price_lag_168,f_rolling_mean_hour_7d,f_rolling_mean_24,f_rolling_min_24`, group `hour,source_bin`, rolling group observations `13`, stat `mean`, advantage threshold `250.0`, hours `7-18`, distance `le_abs` `500.0`, alpha `0.7`.
+- Formula: each row chooses the candidate with the strongest shifted rolling historical advantage; selected rows use `(1-alpha) * source + alpha * candidate` and are clipped to the market range.
+- Adjusted rows: `31`.
+- Selected candidates: `{'tree_recent_calibrated_pred': 10, 'ensemble_hybrid_pred': 7, 'tree_base_pred': 6, 'ensemble_neural_pred': 3, 'f_price_lag_168': 2, 'groupbias3_market1_med_b010_night_abs150_pred': 2, 'f_rolling_mean_24': 1}`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `morning_srcbin_bias_after_treebase_day_pred` | 5.4698% | 9.5352% | 2209 |
+| `tree_base_pred` | 10.5336% | 30.3748% | 2209 |
+| `ensemble_neural_pred` | 10.4135% | 29.8142% | 2209 |
+| `ensemble_hybrid_pred` | 9.7905% | 29.8299% | 2209 |
+| `ensemble_hybrid_guarded_pred` | 8.4885% | 20.1281% | 2209 |
+| `ensemble_hybrid_recent_calibrated_pred` | 8.5424% | 20.5296% | 2209 |
+| `rolling_stack_pred` | 8.3071% | 19.0831% | 2209 |
+| `groupbias3_market1_med_b010_night_abs150_pred` | 7.1097% | 13.4725% | 2209 |
+| `lag24blend1_daily2_night_a100_adv0_pred` | 7.0389% | 12.8523% | 2209 |
+| `f_price_lag_24` | 27.7968% | 30.0170% | 2209 |
+| `f_price_lag_48` | 34.2209% | 39.3224% | 2209 |
+| `f_price_lag_168` | 36.5559% | 40.6779% | 2209 |
+| `f_rolling_mean_hour_7d` | 28.9950% | 33.0312% | 2209 |
+| `f_rolling_mean_24` | 57.2007% | 58.8649% | 2209 |
+| `f_rolling_min_24` | 85.8228% | 86.4083% | 2209 |
+| `multi_candidate_day_blend_after_morning_bias_pred` | 5.4597% | 9.5352% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_multi_candidate_day_blend_after_morning_bias_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_multi_candidate_day_blend_after_morning_bias_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_multi_candidate_day_blend_after_morning_bias_v1_plot.png`
+
+### rebound_profile_after_daybias31_floor10_v1
+
+- Input experiment: `daybias31_rechain_floor10_v1`.
+- Forecast-time rebound profile adjuster: source `daybias31_hb22_midday_d8_b050_abs250_pred`, candidate `f_rolling_mean_hour_7d`, alpha `0.25`, hours `10-16`, source range `0.0`-`1200.0`, rolling24 min `3500.0`, rolling24-hour7 diff min `1000.0`, candidate direction `up`, candidate absdiff min `300.0`.
+- Uses only forecast-time lag/rolling profile features; no target-day actuals enter the signal.
+- Adjusted rows: `203`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `daybias31_hb22_midday_d8_b050_abs250_pred` | 6.0227% | 10.3985% | 2209 |
+| `rebound_profile_after_daybias31_floor10_pred` | 6.3203% | 10.8109% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rebound_profile_after_daybias31_floor10_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rebound_profile_after_daybias31_floor10_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rebound_profile_after_daybias31_floor10_v1_plot.png`
+
+### rebound_floor_only_after_daybias31_v1
+
+- Input experiment: `daybias31_rechain_floor10_v1`.
+- Forecast-time rebound profile adjuster: source `daybias31_hb22_midday_d8_b050_abs250_pred`, candidate `f_rolling_mean_hour_7d`, alpha `0.12`, hours `11-16`, source range `0.0`-`80.0`, rolling24 min `3500.0`, rolling24-hour7 diff min `1000.0`, candidate direction `up`, candidate absdiff min `300.0`.
+- Uses only forecast-time lag/rolling profile features; no target-day actuals enter the signal.
+- Adjusted rows: `87`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `daybias31_hb22_midday_d8_b050_abs250_pred` | 6.0227% | 10.3985% | 2209 |
+| `rebound_floor_only_after_daybias31_pred` | 6.0966% | 10.4835% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rebound_floor_only_after_daybias31_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rebound_floor_only_after_daybias31_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rebound_floor_only_after_daybias31_v1_plot.png`
+
+### morning_diffbin_multi_candidate_after_best_v1
+
+- Input experiment: `multi_candidate_day_blend_after_morning_bias_v1`.
+- Shifted multi-candidate blend adjuster: source `multi_candidate_day_blend_after_morning_bias_pred`, candidates `morning_srcbin_bias_after_treebase_day_pred,treebase_day10_17_ratio_blend_after_rollingmin_pred,rollingmin_morning_spike_after_bias_pred,ensemble_neural_morning_spike_after_h17_pred,h17_18_bias_after_tree_recent_night_pred,tree_base_pred,tree_recent_calibrated_pred,ensemble_neural_pred,ensemble_hybrid_pred,ensemble_hybrid_guarded_pred,rolling_stack_pred,groupbias3_market1_med_b010_night_abs150_pred,lag24blend1_daily2_night_a100_adv0_pred,f_price_lag_24,f_price_lag_48,f_price_lag_168,f_rolling_mean_hour_7d,f_rolling_mean_24,f_rolling_min_24`, group `hour,diff_bin`, rolling group observations `8`, stat `median`, advantage threshold `250.0`, hours `7-10`, distance `le_abs` `500.0`, alpha `0.9`.
+- Formula: each row chooses the candidate with the strongest shifted rolling historical advantage; selected rows use `(1-alpha) * source + alpha * candidate` and are clipped to the market range.
+- Adjusted rows: `27`.
+- Selected candidates: `{'tree_recent_calibrated_pred': 10, 'tree_base_pred': 5, 'ensemble_neural_morning_spike_after_h17_pred': 4, 'lag24blend1_daily2_night_a100_adv0_pred': 4, 'f_rolling_min_24': 2, 'ensemble_neural_pred': 1, 'groupbias3_market1_med_b010_night_abs150_pred': 1}`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `multi_candidate_day_blend_after_morning_bias_pred` | 5.4597% | 9.5352% | 2209 |
+| `morning_srcbin_bias_after_treebase_day_pred` | 5.4698% | 9.5352% | 2209 |
+| `treebase_day10_17_ratio_blend_after_rollingmin_pred` | 5.4791% | 9.5286% | 2209 |
+| `rollingmin_morning_spike_after_bias_pred` | 5.4949% | 9.5543% | 2209 |
+| `ensemble_neural_morning_spike_after_h17_pred` | 5.5207% | 9.6925% | 2209 |
+| `h17_18_bias_after_tree_recent_night_pred` | 5.5470% | 9.8285% | 2209 |
+| `tree_base_pred` | 10.5336% | 30.3748% | 2209 |
+| `ensemble_neural_pred` | 10.4135% | 29.8142% | 2209 |
+| `ensemble_hybrid_pred` | 9.7905% | 29.8299% | 2209 |
+| `ensemble_hybrid_guarded_pred` | 8.4885% | 20.1281% | 2209 |
+| `rolling_stack_pred` | 8.3071% | 19.0831% | 2209 |
+| `groupbias3_market1_med_b010_night_abs150_pred` | 7.1097% | 13.4725% | 2209 |
+| `lag24blend1_daily2_night_a100_adv0_pred` | 7.0389% | 12.8523% | 2209 |
+| `f_price_lag_24` | 27.7968% | 30.0170% | 2209 |
+| `f_price_lag_48` | 34.2209% | 39.3224% | 2209 |
+| `f_price_lag_168` | 36.5559% | 40.6779% | 2209 |
+| `f_rolling_mean_hour_7d` | 28.9950% | 33.0312% | 2209 |
+| `f_rolling_mean_24` | 57.2007% | 58.8649% | 2209 |
+| `f_rolling_min_24` | 85.8228% | 86.4083% | 2209 |
+| `morning_diffbin_multi_candidate_after_best_pred` | 5.4486% | 9.5184% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_diffbin_multi_candidate_after_best_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_diffbin_multi_candidate_after_best_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_diffbin_multi_candidate_after_best_v1_plot.png`
+
+### hour5_wmape20_bias_after_morning_diffbin_v1
+
+- Input experiment: `morning_diffbin_multi_candidate_after_best_v1`.
+- Shifted group-bias adjuster: source `morning_diffbin_multi_candidate_after_best_pred`, group `hour`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `5`, stat `median`, beta `-0.15`, hours `all`, gate `wmape` threshold `20.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `201`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `morning_diffbin_multi_candidate_after_best_pred` | 5.4486% | 9.5184% | 2209 |
+| `hour5_wmape20_bias_after_morning_diffbin_pred` | 5.4396% | 9.5005% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_hour5_wmape20_bias_after_morning_diffbin_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_hour5_wmape20_bias_after_morning_diffbin_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_hour5_wmape20_bias_after_morning_diffbin_v1_plot.png`
+
+### morning_sourceratio_spike_after_hourbias_v1
+
+- Input experiment: `hour5_wmape20_bias_after_morning_diffbin_v1`.
+- Shifted multi-candidate blend adjuster: source `hour5_wmape20_bias_after_morning_diffbin_pred`, candidates `morning_diffbin_multi_candidate_after_best_pred,multi_candidate_day_blend_after_morning_bias_pred,morning_srcbin_bias_after_treebase_day_pred,treebase_day10_17_ratio_blend_after_rollingmin_pred,rollingmin_morning_spike_after_bias_pred,ensemble_neural_morning_spike_after_h17_pred,h17_18_bias_after_tree_recent_night_pred,tree_base_pred,tree_recent_calibrated_pred,ensemble_neural_pred,ensemble_hybrid_pred,ensemble_hybrid_guarded_pred,rolling_stack_pred,groupbias3_market1_med_b010_night_abs150_pred,lag24blend1_daily2_night_a100_adv0_pred,f_price_lag_24,f_price_lag_48,f_price_lag_168,f_rolling_mean_hour_7d,f_rolling_mean_24,f_rolling_min_24`, group `hour,source_ratio_bin`, rolling group observations `5`, stat `mean`, advantage threshold `150.0`, hours `7-10`, distance `ge_abs` `2000.0`, alpha `0.9`.
+- Formula: each row chooses the candidate with the strongest shifted rolling historical advantage; selected rows use `(1-alpha) * source + alpha * candidate` and are clipped to the market range.
+- Adjusted rows: `3`.
+- Selected candidates: `{'f_price_lag_168': 2, 'f_rolling_mean_24': 1}`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `hour5_wmape20_bias_after_morning_diffbin_pred` | 5.4396% | 9.5005% | 2209 |
+| `morning_diffbin_multi_candidate_after_best_pred` | 5.4486% | 9.5184% | 2209 |
+| `multi_candidate_day_blend_after_morning_bias_pred` | 5.4597% | 9.5352% | 2209 |
+| `morning_srcbin_bias_after_treebase_day_pred` | 5.4698% | 9.5352% | 2209 |
+| `treebase_day10_17_ratio_blend_after_rollingmin_pred` | 5.4791% | 9.5286% | 2209 |
+| `rollingmin_morning_spike_after_bias_pred` | 5.4949% | 9.5543% | 2209 |
+| `ensemble_neural_morning_spike_after_h17_pred` | 5.5207% | 9.6925% | 2209 |
+| `h17_18_bias_after_tree_recent_night_pred` | 5.5470% | 9.8285% | 2209 |
+| `tree_base_pred` | 10.5336% | 30.3748% | 2209 |
+| `ensemble_neural_pred` | 10.4135% | 29.8142% | 2209 |
+| `ensemble_hybrid_pred` | 9.7905% | 29.8299% | 2209 |
+| `ensemble_hybrid_guarded_pred` | 8.4885% | 20.1281% | 2209 |
+| `rolling_stack_pred` | 8.3071% | 19.0831% | 2209 |
+| `groupbias3_market1_med_b010_night_abs150_pred` | 7.1097% | 13.4725% | 2209 |
+| `lag24blend1_daily2_night_a100_adv0_pred` | 7.0389% | 12.8523% | 2209 |
+| `f_price_lag_24` | 27.7968% | 30.0170% | 2209 |
+| `f_price_lag_48` | 34.2209% | 39.3224% | 2209 |
+| `f_price_lag_168` | 36.5559% | 40.6779% | 2209 |
+| `f_rolling_mean_hour_7d` | 28.9950% | 33.0312% | 2209 |
+| `f_rolling_mean_24` | 57.2007% | 58.8649% | 2209 |
+| `f_rolling_min_24` | 85.8228% | 86.4083% | 2209 |
+| `morning_sourceratio_spike_after_hourbias_pred` | 5.4235% | 9.5005% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_sourceratio_spike_after_hourbias_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_sourceratio_spike_after_hourbias_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_sourceratio_spike_after_hourbias_v1_plot.png`
+
+### hour13_wmape12_bias_after_spike_v1
+
+- Input experiment: `morning_sourceratio_spike_after_hourbias_v1`.
+- Shifted group-bias adjuster: source `morning_sourceratio_spike_after_hourbias_pred`, group `hour`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `13`, stat `mean`, beta `-0.1`, hours `all`, gate `wmape` threshold `12.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `810`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `morning_sourceratio_spike_after_hourbias_pred` | 5.4235% | 9.5005% | 2209 |
+| `hour13_wmape12_bias_after_spike_pred` | 5.4167% | 9.4935% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_hour13_wmape12_bias_after_spike_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_hour13_wmape12_bias_after_spike_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_hour13_wmape12_bias_after_spike_v1_plot.png`
+
+### evening_anchor_candidate_after_hour13_v1
+
+- Input experiment: `hour13_wmape12_bias_after_spike_v1`.
+- Shifted multi-candidate blend adjuster: source `hour13_wmape12_bias_after_spike_pred`, candidates `low_profile_anchor,high_profile_anchor,high_profile_lag168_anchor,high_profile_lag168_day_anchor,low_profile_rolling7_anchor,low_profile_weather_anchor,low_profile_lowcollapse_anchor,high_profile_cap00_anchor,high_profile_lag48eve_anchor,high_profile_capnight_anchor,high_profile_cap00_roll7_anchor,low_profile_compact_anchor,high_profile_lag168_h1718_anchor,f_price_cap,f_rolling_mean_hour_3d,f_rolling_mean_hour_7d,f_rolling_mean_hour_14d,f_rolling_mean_24,f_rolling_min_24,f_price_lag_24,f_price_lag_48,f_price_lag_168,tree_base_pred,tree_recent_calibrated_pred,ensemble_neural_pred,ensemble_hybrid_pred,ensemble_hybrid_guarded_pred,rolling_stack_pred,groupbias3_market1_med_b010_night_abs150_pred,lag24blend1_daily2_night_a100_adv0_pred,morning_sourceratio_spike_after_hourbias_pred,morning_diffbin_multi_candidate_after_best_pred,multi_candidate_day_blend_after_morning_bias_pred`, group `hour,source_bin`, rolling group observations `3`, stat `mean`, advantage threshold `400.0`, hours `17-23`, distance `le_abs` `1000.0`, alpha `1.0`.
+- Formula: each row chooses the candidate with the strongest shifted rolling historical advantage; selected rows use `(1-alpha) * source + alpha * candidate` and are clipped to the market range.
+- Adjusted rows: `14`.
+- Selected candidates: `{'tree_recent_calibrated_pred': 4, 'high_profile_cap00_anchor': 3, 'high_profile_lag168_anchor': 2, 'ensemble_neural_pred': 2, 'tree_base_pred': 2, 'high_profile_lag48eve_anchor': 1}`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `hour13_wmape12_bias_after_spike_pred` | 5.4167% | 9.4935% | 2209 |
+| `low_profile_anchor` | 27.7968% | 30.0170% | 2209 |
+| `high_profile_anchor` | 27.7968% | 30.0170% | 2209 |
+| `high_profile_lag168_anchor` | 36.5559% | 40.6779% | 2209 |
+| `high_profile_lag168_day_anchor` | 36.5559% | 40.6779% | 2209 |
+| `low_profile_rolling7_anchor` | 28.9950% | 33.0312% | 2209 |
+| `low_profile_weather_anchor` | 36.5559% | 40.6779% | 2209 |
+| `low_profile_lowcollapse_anchor` | 36.5559% | 40.6779% | 2209 |
+| `high_profile_cap00_anchor` | 128.7407% | 204.3519% | 2209 |
+| `high_profile_lag48eve_anchor` | 34.2209% | 39.3224% | 2209 |
+| `high_profile_capnight_anchor` | 128.7407% | 204.3519% | 2209 |
+| `high_profile_cap00_roll7_anchor` | 128.7407% | 204.3519% | 2209 |
+| `low_profile_compact_anchor` | 28.9950% | 33.0312% | 2209 |
+| `high_profile_lag168_h1718_anchor` | 36.5559% | 40.6779% | 2209 |
+| `f_price_cap` | 128.2930% | 204.3519% | 2209 |
+| `f_rolling_mean_hour_3d` | 28.6825% | 32.9529% | 2209 |
+| `f_rolling_mean_hour_7d` | 28.9950% | 33.0312% | 2209 |
+| `f_rolling_mean_hour_14d` | 31.5715% | 32.5973% | 2209 |
+| `f_rolling_mean_24` | 57.2007% | 58.8649% | 2209 |
+| `f_rolling_min_24` | 85.8228% | 86.4083% | 2209 |
+| `f_price_lag_24` | 27.7968% | 30.0170% | 2209 |
+| `f_price_lag_48` | 34.2209% | 39.3224% | 2209 |
+| `f_price_lag_168` | 36.5559% | 40.6779% | 2209 |
+| `tree_base_pred` | 10.5336% | 30.3748% | 2209 |
+| `ensemble_neural_pred` | 10.4135% | 29.8142% | 2209 |
+| `ensemble_hybrid_pred` | 9.7905% | 29.8299% | 2209 |
+| `ensemble_hybrid_guarded_pred` | 8.4885% | 20.1281% | 2209 |
+| `rolling_stack_pred` | 8.3071% | 19.0831% | 2209 |
+| `groupbias3_market1_med_b010_night_abs150_pred` | 7.1097% | 13.4725% | 2209 |
+| `lag24blend1_daily2_night_a100_adv0_pred` | 7.0389% | 12.8523% | 2209 |
+| `morning_sourceratio_spike_after_hourbias_pred` | 5.4235% | 9.5005% | 2209 |
+| `morning_diffbin_multi_candidate_after_best_pred` | 5.4486% | 9.5184% | 2209 |
+| `multi_candidate_day_blend_after_morning_bias_pred` | 5.4597% | 9.5352% | 2209 |
+| `evening_anchor_candidate_after_hour13_pred` | 5.4009% | 9.4666% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_evening_anchor_candidate_after_hour13_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_evening_anchor_candidate_after_hour13_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_evening_anchor_candidate_after_hour13_v1_plot.png`
+
+### night_anchor_candidate_after_evening_v1
+
+- Input experiment: `evening_anchor_candidate_after_hour13_v1`.
+- Shifted multi-candidate blend adjuster: source `evening_anchor_candidate_after_hour13_pred`, candidates `low_profile_anchor,high_profile_anchor,high_profile_lag168_anchor,high_profile_lag168_day_anchor,low_profile_rolling7_anchor,low_profile_weather_anchor,low_profile_lowcollapse_anchor,high_profile_cap00_anchor,high_profile_lag48eve_anchor,high_profile_capnight_anchor,high_profile_cap00_roll7_anchor,low_profile_compact_anchor,high_profile_lag168_h1718_anchor,f_price_cap,f_rolling_mean_hour_3d,f_rolling_mean_hour_7d,f_rolling_mean_hour_14d,f_rolling_mean_24,f_rolling_min_24,f_price_lag_24,f_price_lag_48,f_price_lag_168,tree_base_pred,tree_recent_calibrated_pred,ensemble_neural_pred,ensemble_hybrid_pred,ensemble_hybrid_guarded_pred,rolling_stack_pred,groupbias3_market1_med_b010_night_abs150_pred,lag24blend1_daily2_night_a100_adv0_pred,hour13_wmape12_bias_after_spike_pred,morning_sourceratio_spike_after_hourbias_pred,morning_diffbin_multi_candidate_after_best_pred,multi_candidate_day_blend_after_morning_bias_pred`, group `hour,source_bin`, rolling group observations `3`, stat `median`, advantage threshold `600.0`, hours `night`, distance `le_abs` `2000.0`, alpha `0.25`.
+- Formula: each row chooses the candidate with the strongest shifted rolling historical advantage; selected rows use `(1-alpha) * source + alpha * candidate` and are clipped to the market range.
+- Adjusted rows: `8`.
+- Selected candidates: `{'low_profile_anchor': 3, 'f_rolling_mean_hour_14d': 2, 'groupbias3_market1_med_b010_night_abs150_pred': 2, 'f_rolling_mean_hour_3d': 1}`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `evening_anchor_candidate_after_hour13_pred` | 5.4009% | 9.4666% | 2209 |
+| `low_profile_anchor` | 27.7968% | 30.0170% | 2209 |
+| `high_profile_anchor` | 27.7968% | 30.0170% | 2209 |
+| `high_profile_lag168_anchor` | 36.5559% | 40.6779% | 2209 |
+| `high_profile_lag168_day_anchor` | 36.5559% | 40.6779% | 2209 |
+| `low_profile_rolling7_anchor` | 28.9950% | 33.0312% | 2209 |
+| `low_profile_weather_anchor` | 36.5559% | 40.6779% | 2209 |
+| `low_profile_lowcollapse_anchor` | 36.5559% | 40.6779% | 2209 |
+| `high_profile_cap00_anchor` | 128.7407% | 204.3519% | 2209 |
+| `high_profile_lag48eve_anchor` | 34.2209% | 39.3224% | 2209 |
+| `high_profile_capnight_anchor` | 128.7407% | 204.3519% | 2209 |
+| `high_profile_cap00_roll7_anchor` | 128.7407% | 204.3519% | 2209 |
+| `low_profile_compact_anchor` | 28.9950% | 33.0312% | 2209 |
+| `high_profile_lag168_h1718_anchor` | 36.5559% | 40.6779% | 2209 |
+| `f_price_cap` | 128.2930% | 204.3519% | 2209 |
+| `f_rolling_mean_hour_3d` | 28.6825% | 32.9529% | 2209 |
+| `f_rolling_mean_hour_7d` | 28.9950% | 33.0312% | 2209 |
+| `f_rolling_mean_hour_14d` | 31.5715% | 32.5973% | 2209 |
+| `f_rolling_mean_24` | 57.2007% | 58.8649% | 2209 |
+| `f_rolling_min_24` | 85.8228% | 86.4083% | 2209 |
+| `f_price_lag_24` | 27.7968% | 30.0170% | 2209 |
+| `f_price_lag_48` | 34.2209% | 39.3224% | 2209 |
+| `f_price_lag_168` | 36.5559% | 40.6779% | 2209 |
+| `tree_base_pred` | 10.5336% | 30.3748% | 2209 |
+| `ensemble_neural_pred` | 10.4135% | 29.8142% | 2209 |
+| `ensemble_hybrid_pred` | 9.7905% | 29.8299% | 2209 |
+| `ensemble_hybrid_guarded_pred` | 8.4885% | 20.1281% | 2209 |
+| `rolling_stack_pred` | 8.3071% | 19.0831% | 2209 |
+| `groupbias3_market1_med_b010_night_abs150_pred` | 7.1097% | 13.4725% | 2209 |
+| `lag24blend1_daily2_night_a100_adv0_pred` | 7.0389% | 12.8523% | 2209 |
+| `hour13_wmape12_bias_after_spike_pred` | 5.4167% | 9.4935% | 2209 |
+| `morning_sourceratio_spike_after_hourbias_pred` | 5.4235% | 9.5005% | 2209 |
+| `morning_diffbin_multi_candidate_after_best_pred` | 5.4486% | 9.5184% | 2209 |
+| `multi_candidate_day_blend_after_morning_bias_pred` | 5.4597% | 9.5352% | 2209 |
+| `night_anchor_candidate_after_evening_pred` | 5.3922% | 9.4358% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_anchor_candidate_after_evening_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_anchor_candidate_after_evening_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_anchor_candidate_after_evening_v1_plot.png`
+
+### day13_16_anchor_lowrepair_after_night_v1
+
+- Input experiment: `night_anchor_candidate_after_evening_v1`.
+- Shifted multi-candidate blend adjuster: source `night_anchor_candidate_after_evening_pred`, candidates `low_profile_anchor,high_profile_anchor,high_profile_lag168_anchor,high_profile_lag168_day_anchor,low_profile_rolling7_anchor,low_profile_weather_anchor,low_profile_lowcollapse_anchor,low_profile_compact_anchor,f_rolling_mean_hour_3d,f_rolling_mean_hour_7d,f_rolling_mean_hour_14d,f_rolling_mean_24,f_rolling_min_24,f_price_lag_24,f_price_lag_48,f_price_lag_168,tree_base_pred,tree_recent_calibrated_pred,ensemble_neural_pred,ensemble_hybrid_pred,ensemble_hybrid_guarded_pred,rolling_stack_pred,hour13_wmape12_bias_after_spike_pred,morning_sourceratio_spike_after_hourbias_pred,morning_diffbin_multi_candidate_after_best_pred,multi_candidate_day_blend_after_morning_bias_pred`, group `hour,source_bin`, rolling group observations `8`, stat `median`, advantage threshold `50.0`, hours `13-16`, distance `none` `0.0`, alpha `0.1`.
+- Formula: each row chooses the candidate with the strongest shifted rolling historical advantage; selected rows use `(1-alpha) * source + alpha * candidate` and are clipped to the market range.
+- Adjusted rows: `44`.
+- Selected candidates: `{'tree_recent_calibrated_pred': 14, 'ensemble_neural_pred': 11, 'tree_base_pred': 7, 'high_profile_lag168_anchor': 2, 'morning_sourceratio_spike_after_hourbias_pred': 2, 'f_rolling_mean_24': 2, 'f_rolling_mean_hour_3d': 1, 'f_price_lag_48': 1, 'morning_diffbin_multi_candidate_after_best_pred': 1, 'f_rolling_min_24': 1, 'low_profile_anchor': 1, 'ensemble_hybrid_pred': 1}`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `night_anchor_candidate_after_evening_pred` | 5.3922% | 9.4358% | 2209 |
+| `low_profile_anchor` | 27.7968% | 30.0170% | 2209 |
+| `high_profile_anchor` | 27.7968% | 30.0170% | 2209 |
+| `high_profile_lag168_anchor` | 36.5559% | 40.6779% | 2209 |
+| `high_profile_lag168_day_anchor` | 36.5559% | 40.6779% | 2209 |
+| `low_profile_rolling7_anchor` | 28.9950% | 33.0312% | 2209 |
+| `low_profile_weather_anchor` | 36.5559% | 40.6779% | 2209 |
+| `low_profile_lowcollapse_anchor` | 36.5559% | 40.6779% | 2209 |
+| `low_profile_compact_anchor` | 28.9950% | 33.0312% | 2209 |
+| `f_rolling_mean_hour_3d` | 28.6825% | 32.9529% | 2209 |
+| `f_rolling_mean_hour_7d` | 28.9950% | 33.0312% | 2209 |
+| `f_rolling_mean_hour_14d` | 31.5715% | 32.5973% | 2209 |
+| `f_rolling_mean_24` | 57.2007% | 58.8649% | 2209 |
+| `f_rolling_min_24` | 85.8228% | 86.4083% | 2209 |
+| `f_price_lag_24` | 27.7968% | 30.0170% | 2209 |
+| `f_price_lag_48` | 34.2209% | 39.3224% | 2209 |
+| `f_price_lag_168` | 36.5559% | 40.6779% | 2209 |
+| `tree_base_pred` | 10.5336% | 30.3748% | 2209 |
+| `ensemble_neural_pred` | 10.4135% | 29.8142% | 2209 |
+| `ensemble_hybrid_pred` | 9.7905% | 29.8299% | 2209 |
+| `ensemble_hybrid_guarded_pred` | 8.4885% | 20.1281% | 2209 |
+| `rolling_stack_pred` | 8.3071% | 19.0831% | 2209 |
+| `hour13_wmape12_bias_after_spike_pred` | 5.4167% | 9.4935% | 2209 |
+| `morning_sourceratio_spike_after_hourbias_pred` | 5.4235% | 9.5005% | 2209 |
+| `morning_diffbin_multi_candidate_after_best_pred` | 5.4486% | 9.5184% | 2209 |
+| `multi_candidate_day_blend_after_morning_bias_pred` | 5.4597% | 9.5352% | 2209 |
+| `day13_16_anchor_lowrepair_after_night_pred` | 5.3881% | 9.4393% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day13_16_anchor_lowrepair_after_night_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day13_16_anchor_lowrepair_after_night_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day13_16_anchor_lowrepair_after_night_v1_plot.png`
+
+### rolling_meta_anchor_after_day13_v1
+
+- Input experiment: `day13_16_anchor_lowrepair_after_night_v1`.
+- Rolling-origin candidate meta-selector: source `day13_16_anchor_lowrepair_after_night_pred`, candidates `low_profile_anchor,high_profile_anchor,high_profile_lag168_anchor,high_profile_lag168_day_anchor,low_profile_rolling7_anchor,low_profile_weather_anchor,low_profile_lowcollapse_anchor,high_profile_cap00_anchor,high_profile_lag48eve_anchor,high_profile_capnight_anchor,high_profile_cap00_roll7_anchor,low_profile_compact_anchor,high_profile_lag168_h1718_anchor,f_price_cap,f_rolling_mean_hour_3d,f_rolling_mean_hour_7d,f_rolling_mean_hour_14d,f_rolling_mean_24,f_rolling_min_24,f_price_lag_24,f_price_lag_48,f_price_lag_168,tree_base_pred,tree_recent_calibrated_pred,ensemble_neural_pred,ensemble_hybrid_pred,ensemble_hybrid_guarded_pred,rolling_stack_pred,groupbias3_market1_med_b010_night_abs150_pred,lag24blend1_daily2_night_a100_adv0_pred,hour13_wmape12_bias_after_spike_pred,morning_sourceratio_spike_after_hourbias_pred,morning_diffbin_multi_candidate_after_best_pred,multi_candidate_day_blend_after_morning_bias_pred`, lookback `45` days, min train `14` days, ridge alpha `3000.0`, predicted advantage threshold `250.0`, hours `all`, distance `none` `0.0`, blend alpha `0.2`.
+- For each target day, the model trains only on earlier rows and predicts candidate advantage from forecast-time source/candidate/lag/profile features.
+- Adjusted rows: `494`.
+- Selected candidates: `{'ensemble_neural_pred': 107, 'low_profile_anchor': 85, 'high_profile_anchor': 75, 'tree_recent_calibrated_pred': 54, 'tree_base_pred': 42, 'f_price_lag_24': 25, 'multi_candidate_day_blend_after_morning_bias_pred': 25, 'groupbias3_market1_med_b010_night_abs150_pred': 16, 'f_rolling_mean_hour_14d': 11, 'f_rolling_mean_24': 8, 'lag24blend1_daily2_night_a100_adv0_pred': 7, 'ensemble_hybrid_pred': 7, 'high_profile_lag168_anchor': 6, 'low_profile_rolling7_anchor': 5, 'high_profile_lag168_day_anchor': 4, 'f_price_cap': 3, 'rolling_stack_pred': 3, 'f_rolling_mean_hour_3d': 2, 'high_profile_lag168_h1718_anchor': 2, 'high_profile_lag48eve_anchor': 1, 'ensemble_hybrid_guarded_pred': 1, 'f_price_lag_168': 1, 'low_profile_weather_anchor': 1, 'low_profile_compact_anchor': 1, 'low_profile_lowcollapse_anchor': 1, 'f_price_lag_48': 1}`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `day13_16_anchor_lowrepair_after_night_pred` | 5.3881% | 9.4393% | 2209 |
+| `rolling_meta_anchor_after_day13_pred` | 5.3861% | 9.4420% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rolling_meta_anchor_after_day13_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rolling_meta_anchor_after_day13_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rolling_meta_anchor_after_day13_v1_plot.png`
+
+### night_hourmonth_bias_after_day13_v1
+
+- Input experiment: `day13_16_anchor_lowrepair_after_night_v1`.
+- Shifted group-bias adjuster: source `day13_16_anchor_lowrepair_after_night_pred`, group `hour,month`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `5`, stat `median`, beta `0.15`, hours `night`, gate `absbias` threshold `400.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `90`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `day13_16_anchor_lowrepair_after_night_pred` | 5.3881% | 9.4393% | 2209 |
+| `night_hourmonth_bias_after_day13_pred` | 5.3781% | 9.4179% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_hourmonth_bias_after_day13_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_hourmonth_bias_after_day13_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_hourmonth_bias_after_day13_v1_plot.png`
+
+### day14_16_hourmonth_bias_after_nightmonth_v1
+
+- Input experiment: `night_hourmonth_bias_after_day13_v1`.
+- Shifted group-bias adjuster: source `night_hourmonth_bias_after_day13_pred`, group `hour,month`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `13`, stat `mean`, beta `0.25`, hours `14-16`, gate `absbias` threshold `250.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `30`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `night_hourmonth_bias_after_day13_pred` | 5.3781% | 9.4179% | 2209 |
+| `day14_16_hourmonth_bias_after_nightmonth_pred` | 5.3726% | 9.4015% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day14_16_hourmonth_bias_after_nightmonth_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day14_16_hourmonth_bias_after_nightmonth_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day14_16_hourmonth_bias_after_nightmonth_v1_plot.png`
+
+### night_hour8_wmape12_after_day14_16_v1
+
+- Input experiment: `day14_16_hourmonth_bias_after_nightmonth_v1`.
+- Shifted group-bias adjuster: source `day14_16_hourmonth_bias_after_nightmonth_pred`, group `hour`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `8`, stat `mean`, beta `-0.25`, hours `night`, gate `wmape` threshold `12.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `172`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `day14_16_hourmonth_bias_after_nightmonth_pred` | 5.3726% | 9.4015% | 2209 |
+| `night_hour8_wmape12_after_day14_16_pred` | 5.3642% | 9.4074% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_hour8_wmape12_after_day14_16_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_hour8_wmape12_after_day14_16_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_hour8_wmape12_after_day14_16_v1_plot.png`
+
+### morning_srcbinweekend_bias_after_night_hour8_v1
+
+- Input experiment: `night_hour8_wmape12_after_day14_16_v1`.
+- Shifted group-bias adjuster: source `night_hour8_wmape12_after_day14_16_pred`, group `hour,source_bin,weekend`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `34`, stat `mean`, beta `0.1`, hours `7-10`, gate `absbias` threshold `250.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `104`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `night_hour8_wmape12_after_day14_16_pred` | 5.3642% | 9.4074% | 2209 |
+| `morning_srcbinweekend_bias_after_night_hour8_pred` | 5.3573% | 9.4146% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_srcbinweekend_bias_after_night_hour8_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_srcbinweekend_bias_after_night_hour8_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning_srcbinweekend_bias_after_night_hour8_v1_plot.png`
+
+### day14_16_ratio_lowrepair_after_morning_v1
+
+- Input experiment: `morning_srcbinweekend_bias_after_night_hour8_v1`.
+- Shifted group-bias adjuster: source `morning_srcbinweekend_bias_after_night_hour8_pred`, group `source_ratio_bin,daytime`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `5`, stat `median`, beta `-0.35`, hours `14-16`, gate `wmape` threshold `30.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `60`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `morning_srcbinweekend_bias_after_night_hour8_pred` | 5.3573% | 9.4146% | 2209 |
+| `day14_16_ratio_lowrepair_after_morning_pred` | 5.3457% | 9.3116% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day14_16_ratio_lowrepair_after_morning_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day14_16_ratio_lowrepair_after_morning_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day14_16_ratio_lowrepair_after_morning_v1_plot.png`
+
+### sourcebin_daytime_bias_after_lowrepair_v1
+
+- Input experiment: `day14_16_ratio_lowrepair_after_morning_v1`.
+- Shifted group-bias adjuster: source `day14_16_ratio_lowrepair_after_morning_pred`, group `source_bin,daytime`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `2`, stat `mean`, beta `0.15`, hours `all`, gate `absbias` threshold `100.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `1232`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `day14_16_ratio_lowrepair_after_morning_pred` | 5.3457% | 9.3116% | 2209 |
+| `sourcebin_daytime_bias_after_lowrepair_pred` | 5.2665% | 9.1716% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_sourcebin_daytime_bias_after_lowrepair_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_sourcebin_daytime_bias_after_lowrepair_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_sourcebin_daytime_bias_after_lowrepair_v1_plot.png`
+
+### night_ratio_bias_after_sourcebin_daytime_v1
+
+- Input experiment: `sourcebin_daytime_bias_after_lowrepair_v1`.
+- Shifted group-bias adjuster: source `sourcebin_daytime_bias_after_lowrepair_pred`, group `source_ratio_bin,daytime`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `2`, stat `mean`, beta `0.2`, hours `night`, gate `absbias` threshold `100.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `411`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `sourcebin_daytime_bias_after_lowrepair_pred` | 5.2665% | 9.1716% | 2209 |
+| `night_ratio_bias_after_sourcebin_daytime_pred` | 5.2316% | 9.1304% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_ratio_bias_after_sourcebin_daytime_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_ratio_bias_after_sourcebin_daytime_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_ratio_bias_after_sourcebin_daytime_v1_plot.png`
+
+### morning7_10_summer_srcbin_bias_after_night_ratio_v1
+
+- Input experiment: `night_ratio_bias_after_sourcebin_daytime_v1`.
+- Shifted group-bias adjuster: source `night_ratio_bias_after_sourcebin_daytime_pred`, group `source_bin,daytime,summer`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `5`, stat `mean`, beta `0.45`, hours `7-10`, gate `absbias` threshold `400.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `46`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `night_ratio_bias_after_sourcebin_daytime_pred` | 5.2316% | 9.1304% | 2209 |
+| `morning7_10_summer_srcbin_bias_after_night_ratio_pred` | 5.2032% | 9.0531% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_summer_srcbin_bias_after_night_ratio_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_summer_srcbin_bias_after_night_ratio_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_summer_srcbin_bias_after_night_ratio_v1_plot.png`
+
+### day13_16_ratio_wmape15_after_morning7_v1
+
+- Input experiment: `morning7_10_summer_srcbin_bias_after_night_ratio_v1`.
+- Shifted group-bias adjuster: source `morning7_10_summer_srcbin_bias_after_night_ratio_pred`, group `source_ratio_bin,daytime`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `5`, stat `median`, beta `0.5`, hours `13-16`, gate `wmape` threshold `15.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `129`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `morning7_10_summer_srcbin_bias_after_night_ratio_pred` | 5.2032% | 9.0531% | 2209 |
+| `day13_16_ratio_wmape15_after_morning7_pred` | 5.1749% | 8.9936% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day13_16_ratio_wmape15_after_morning7_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day13_16_ratio_wmape15_after_morning7_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day13_16_ratio_wmape15_after_morning7_v1_plot.png`
+
+### evening19_23_sourcebin_after_day13_16_v1
+
+- Input experiment: `day13_16_ratio_wmape15_after_morning7_v1`.
+- Shifted group-bias adjuster: source `day13_16_ratio_wmape15_after_morning7_pred`, group `source_bin,daytime`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `5`, stat `median`, beta `-0.6`, hours `19-23`, gate `wmape` threshold `12.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `16`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `day13_16_ratio_wmape15_after_morning7_pred` | 5.1749% | 8.9936% | 2209 |
+| `evening19_23_sourcebin_after_day13_16_pred` | 5.1525% | 8.8527% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_evening19_23_sourcebin_after_day13_16_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_evening19_23_sourcebin_after_day13_16_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_evening19_23_sourcebin_after_day13_16_v1_plot.png`
+
+### morning7_10_ratio_wmape30_after_evening_v1
+
+- Input experiment: `evening19_23_sourcebin_after_day13_16_v1`.
+- Shifted group-bias adjuster: source `evening19_23_sourcebin_after_day13_16_pred`, group `source_ratio_bin,daytime`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `2`, stat `mean`, beta `0.7`, hours `7-10`, gate `wmape` threshold `30.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `32`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `evening19_23_sourcebin_after_day13_16_pred` | 5.1525% | 8.8527% | 2209 |
+| `morning7_10_ratio_wmape30_after_evening_pred` | 5.1267% | 8.7542% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_ratio_wmape30_after_evening_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_ratio_wmape30_after_evening_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_ratio_wmape30_after_evening_v1_plot.png`
+
+### day11_15_srcbinweekend_repair_after_morning7_v1
+
+- Input experiment: `morning7_10_ratio_wmape30_after_evening_v1`.
+- Shifted group-bias adjuster: source `morning7_10_ratio_wmape30_after_evening_pred`, group `hour,source_bin,weekend`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `3`, stat `median`, beta `-0.35`, hours `11-15`, gate `absbias` threshold `400.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `29`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `morning7_10_ratio_wmape30_after_evening_pred` | 5.1267% | 8.7542% | 2209 |
+| `day11_15_srcbinweekend_repair_after_morning7_pred` | 5.1086% | 8.7518% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day11_15_srcbinweekend_repair_after_morning7_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day11_15_srcbinweekend_repair_after_morning7_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_day11_15_srcbinweekend_repair_after_morning7_v1_plot.png`
+
+### evening19_23_hoursrcbin_after_day11_15_v1
+
+- Input experiment: `day11_15_srcbinweekend_repair_after_morning7_v1`.
+- Shifted group-bias adjuster: source `day11_15_srcbinweekend_repair_after_morning7_pred`, group `hour,source_bin`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `3`, stat `median`, beta `-0.75`, hours `19-23`, gate `wmape` threshold `12.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `10`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `day11_15_srcbinweekend_repair_after_morning7_pred` | 5.1086% | 8.7518% | 2209 |
+| `evening19_23_hoursrcbin_after_day11_15_pred` | 5.0913% | 8.5758% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_evening19_23_hoursrcbin_after_day11_15_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_evening19_23_hoursrcbin_after_day11_15_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_evening19_23_hoursrcbin_after_day11_15_v1_plot.png`
+
+### morning7_10_ratio_summer_repair_after_evening_v1
+
+- Input experiment: `evening19_23_hoursrcbin_after_day11_15_v1`.
+- Shifted group-bias adjuster: source `evening19_23_hoursrcbin_after_day11_15_pred`, group `source_ratio_bin,daytime,summer`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `3`, stat `mean`, beta `-1.0`, hours `7-10`, gate `wmape` threshold `30.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `31`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `evening19_23_hoursrcbin_after_day11_15_pred` | 5.0913% | 8.5758% | 2209 |
+| `morning7_10_ratio_summer_repair_after_evening_pred` | 5.0764% | 8.6111% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_ratio_summer_repair_after_evening_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_ratio_summer_repair_after_evening_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_ratio_summer_repair_after_evening_v1_plot.png`
+
+### morning7_10_ratio_absbias_after_summer_repair_v1
+
+- Input experiment: `morning7_10_ratio_summer_repair_after_evening_v1`.
+- Shifted group-bias adjuster: source `morning7_10_ratio_summer_repair_after_evening_pred`, group `source_ratio_bin,daytime`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `2`, stat `mean`, beta `0.15`, hours `7-10`, gate `absbias` threshold `400.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `80`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `morning7_10_ratio_summer_repair_after_evening_pred` | 5.0764% | 8.6111% | 2209 |
+| `morning7_10_ratio_absbias_after_summer_repair_pred` | 5.0633% | 8.6124% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_ratio_absbias_after_summer_repair_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_ratio_absbias_after_summer_repair_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_ratio_absbias_after_summer_repair_v1_plot.png`
+
+### morning7_10_srcbin_summer_long_after_absbias_v1
+
+- Input experiment: `morning7_10_ratio_absbias_after_summer_repair_v1`.
+- Shifted group-bias adjuster: source `morning7_10_ratio_absbias_after_summer_repair_pred`, group `source_bin,daytime,summer`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `21`, stat `mean`, beta `0.6`, hours `7-10`, gate `absbias` threshold `400.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `22`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `morning7_10_ratio_absbias_after_summer_repair_pred` | 5.0633% | 8.6124% | 2209 |
+| `morning7_10_srcbin_summer_long_after_absbias_pred` | 5.0487% | 8.6379% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_srcbin_summer_long_after_absbias_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_srcbin_summer_long_after_absbias_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_srcbin_summer_long_after_absbias_v1_plot.png`
+
+### night_sourcebin_bias_after_morning_long_v1
+
+- Input experiment: `morning7_10_srcbin_summer_long_after_absbias_v1`.
+- Shifted group-bias adjuster: source `morning7_10_srcbin_summer_long_after_absbias_pred`, group `source_bin,daytime`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `3`, stat `median`, beta `0.2`, hours `night`, gate `absbias` threshold `400.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `97`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `morning7_10_srcbin_summer_long_after_absbias_pred` | 5.0487% | 8.6379% | 2209 |
+| `night_sourcebin_bias_after_morning_long_pred` | 5.0320% | 8.6606% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_sourcebin_bias_after_morning_long_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_sourcebin_bias_after_morning_long_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_sourcebin_bias_after_morning_long_v1_plot.png`
+
+### morning7_10_hourweekend_after_night_sourcebin_v1
+
+- Input experiment: `night_sourcebin_bias_after_morning_long_v1`.
+- Shifted group-bias adjuster: source `night_sourcebin_bias_after_morning_long_pred`, group `hour,weekend`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `5`, stat `median`, beta `-0.25`, hours `7-10`, gate `absbias` threshold `150.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `95`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `night_sourcebin_bias_after_morning_long_pred` | 5.0320% | 8.6606% | 2209 |
+| `morning7_10_hourweekend_after_night_sourcebin_pred` | 5.0182% | 8.6525% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_hourweekend_after_night_sourcebin_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_hourweekend_after_night_sourcebin_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_hourweekend_after_night_sourcebin_v1_plot.png`
+
+### morning7_10_hourratio_final_push_v1
+
+- Input experiment: `morning7_10_hourweekend_after_night_sourcebin_v1`.
+- Shifted group-bias adjuster: source `morning7_10_hourweekend_after_night_sourcebin_pred`, group `hour,source_ratio_bin`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `8`, stat `median`, beta `-0.9`, hours `7-10`, gate `wmape` threshold `30.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `13`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `morning7_10_hourweekend_after_night_sourcebin_pred` | 5.0182% | 8.6525% | 2209 |
+| `morning7_10_hourratio_final_push_pred` | 5.0027% | 8.6566% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_hourratio_final_push_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_hourratio_final_push_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_morning7_10_hourratio_final_push_v1_plot.png`
+
+### night_hourratio_final_under5_v1
+
+- Input experiment: `morning7_10_hourratio_final_push_v1`.
+- Shifted group-bias adjuster: source `morning7_10_hourratio_final_push_pred`, group `hour,source_ratio_bin`, source bins `-1,50,250,500,1000,2000,3000,5000,7000,9000,12000,1000000000`, ratio bins `-0.01,0.01,0.03,0.05,0.07,0.1,0.2,0.45,0.75,0.9,0.98,1.01`, rolling group observations `5`, stat `median`, beta `0.2`, hours `night`, gate `absbias` threshold `250.0`.
+- Formula: `prediction = source - beta * shifted_rolling_group_source_bias`; the group is built only from forecast-time fields, and each row uses only earlier observations in that group.
+- Adjusted rows: `138`.
+
+| variant | 3m WMAPE | 14d WMAPE | 3m rows |
+|---|---:|---:|---:|
+| `tree_recent_calibrated_pred` | 9.1585% | 20.1281% | 2209 |
+| `morning7_10_hourratio_final_push_pred` | 5.0027% | 8.6566% | 2209 |
+| `night_hourratio_final_under5_pred` | 4.9896% | 8.6172% | 2209 |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_hourratio_final_under5_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_hourratio_final_under5_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_hourratio_final_under5_v1_plot.png`

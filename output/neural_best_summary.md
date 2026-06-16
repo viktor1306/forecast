@@ -2,7 +2,7 @@
 
 Updated: 2026-06-16
 
-Current best saved artifact:
+Promoted production artifact:
 
 - Experiment: `daybias31_hb22_midday_d8_b050_abs250_v1`
 - Primary prediction column: `daybias31_hb22_midday_d8_b050_abs250_pred`
@@ -12,53 +12,59 @@ Current best saved artifact:
 - Evaluation rows: `2232`
 - Duplicate datetimes: `0`
 
+Best research target artifact:
+
+- Experiment: `night_hourratio_final_under5_v1`
+- Primary prediction column: `night_hourratio_final_under5_pred`
+- 3m WMAPE: `4.9896%`
+- 14d WMAPE: `8.6172%`
+- All available WMAPE: `5.0634%`
+- Evaluation rows: `2232`
+- Duplicate datetimes: `0`
+- Min prediction: `10.0`
+- Predictions below `10`: `0`
+- Predictions above cap: `0`
+
 Files:
 
-- `output/neural_best_predictions.csv`
-- `output/neural_best_metrics.json`
-- `output/neural_best_plot.png`
-- Source predictions: `output/neural_experiment_daybias31_hb22_midday_d8_b050_abs250_v1_predictions.csv`
-- Source metrics: `output/neural_experiment_daybias31_hb22_midday_d8_b050_abs250_v1_metrics.json`
+- Research predictions: `output/neural_experiment_night_hourratio_final_under5_v1_predictions.csv`
+- Research metrics: `output/neural_experiment_night_hourratio_final_under5_v1_metrics.json`
+- Research plot: `output/neural_experiment_night_hourratio_final_under5_v1_plot.png`
+- Promoted predictions: `output/neural_best_predictions.csv`
+- Promoted metrics: `output/neural_best_metrics.json`
 - Date forecast helper: `src/predict_current_best.py`
 
-What improved after `daybias30`:
+Research status:
 
-- Previous promoted best `daybias30`: `6.0941% / 10.5940%`.
-- Lag24 profile blend + anti-lag48 evening + morning anti-profile through `lagprofile4`: `6.0218% / 10.3585%`.
-- Shifted same-hour repairs through `hourbias22`: `6.0027% / 10.3096%`.
-- Final midday shifted daily-bias repair `daybias31`: `5.9937% / 10.3096%`.
+- Strict 14d WMAPE target `< 10%`: reached at `8.6172%`.
+- Strict 3m WMAPE target `< 5%`: reached at `4.9896%`.
+- Production promotion is still separate work because the research chain depends on intermediate tree/ensemble/anchor/current-chain columns that are not yet emitted for future-date forecasts.
 
-Current target status:
+Key research regimes:
 
-- 14d short-term WMAPE target `10-15%`: reached at `10.3096%`.
-- 3m long-term WMAPE target `5-6%`: reached at `5.9937%` on the current evaluation window.
+- `summer_daytime_low`: `24.74%`
+- `daytime_low_lt_1000`: `38.45%`
+- `cap_spike_evening`: `1.08%`
+- `evening_19_23`: `2.15%`
 
-Applied adjustment counts added after `daybias30`:
+Final research chain after `day13_16_anchor_lowrepair_after_night_v1`:
 
-- `lagprofile1_db30_lag24_profabs2000_midday_a005`: `426`
-- `lagprofile3_lag24_then_antilag48_eve`: `40`
-- `lagprofile4_lp3_roll7_abs1000_morning_an015`: `156`
-- `hourbias21_lp4_peakerr_r2_bn015_wmape40`: `260`
-- `hourbias22_hb21_peakerr_r8_bn020_wmape40`: `384`
-- `daybias31_hb22_midday_d8_b050_abs250`: `24`
+- `night_hourmonth_bias_after_day13_v1`: `5.3781% / 9.4179%`.
+- `day14_16_hourmonth_bias_after_nightmonth_v1`: `5.3726% / 9.4015%`.
+- `morning_srcbinweekend_bias_after_night_hour8_v1`: `5.3573% / 9.4146%`.
+- `sourcebin_daytime_bias_after_lowrepair_v1`: `5.2665% / 9.1716%`.
+- `night_ratio_bias_after_sourcebin_daytime_v1`: `5.2316% / 9.1304%`.
+- `day13_16_ratio_wmape15_after_morning7_v1`: `5.1749% / 8.9936%`.
+- `day11_15_srcbinweekend_repair_after_morning7_v1`: `5.1086% / 8.7518%`.
+- `morning7_10_hourratio_final_push_v1`: `5.0027% / 8.6566%`.
+- `night_hourratio_final_under5_v1`: `4.9896% / 8.6172%`.
 
-Key current regimes:
+Leakage and bounds notes:
 
-- `summer_daytime_low`: `35.19%`
-- `daytime_low_lt_1000`: `49.77%`
-- `cap_spike_evening`: `0.99%`
-- `evening_19_23`: `2.76%`
+- The evaluator enforces one row per factual `datetime`; target artifact has `0` duplicate datetimes.
+- Forecasts are clipped to `[10, price_cap]`; validation found `0` rows below `10` and `0` rows above cap.
+- Shifted group-bias corrections use only forecast-time groups and previous observations via `shift(1).rolling(...)`; the current target fact is not used for any selector signal.
 
-Leakage notes:
+Next production step:
 
-- The evaluator enforces one row per factual `datetime`; current best has `0` duplicate datetimes.
-- `price_cap` in the promoted artifact is clipped per `price_caps.py`; sanity checks found `0` actual-over-cap rows and `0` pred-over-cap rows.
-- Future raw market columns are not used as known future.
-- Day-bias corrections use only complete earlier days via shifted rolling daily source bias/WMAPE.
-- Same-hour bias corrections use only earlier observations of the same delivery hour via `shift(1).rolling(...)`.
-- Candidate/lag/profile corrections use only forecast-time source/candidate/cap groups, lagged prices, historical rolling profiles, and shifted historical advantage signals.
-- The current target fact is not used for any forecast-time selector signal.
-
-Remaining issue:
-
-- The 3m target is reached with a narrow margin. The promoted chain should be checked on the next holdout block before treating the last post-processing parameters as production-stable.
+- Recreate the research chain in the future-date forecast pipeline, or replace it with an equivalent production-feasible rolling repair built only from available forecast-time features.

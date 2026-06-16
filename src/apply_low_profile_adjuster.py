@@ -14,6 +14,7 @@ for import_path in (SRC_DIR, ROOT_DIR):
         sys.path.append(import_path)
 
 from evaluate_neural_hybrid import calculate_metrics, save_evaluation_artifacts
+from prediction_limits import clip_price_forecast
 from train_neural_hybrid import prepare_dataframe
 
 
@@ -116,7 +117,10 @@ def add_low_profile_adjustment(
 
     adjusted = pred.copy()
     adjusted[risk] = np.minimum(pred[risk], (1.0 - blend) * pred[risk] + blend * target[risk])
-    adjusted = np.clip(adjusted, 0.0, pd.to_numeric(frame["price_cap"], errors="coerce").to_numpy(dtype="float64"))
+    adjusted = clip_price_forecast(
+        adjusted,
+        pd.to_numeric(frame["price_cap"], errors="coerce").to_numpy(dtype="float64"),
+    )
 
     frame[anchor_output_col] = anchor
     frame[flag_col] = risk.astype(int)

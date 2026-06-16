@@ -14,6 +14,7 @@ for import_path in (SRC_DIR, ROOT_DIR):
         sys.path.append(import_path)
 
 from evaluate_neural_hybrid import calculate_metrics, save_evaluation_artifacts
+from prediction_limits import clip_price_forecast
 
 
 DEFAULT_PRICE_BINS = "-1,100,500,1000,2000,4000,7000,10000,13000,1000000000"
@@ -187,7 +188,7 @@ def apply_candidate_blend_adjustment(predictions, args):
 
     adjusted = source.copy()
     adjusted[selected] = (1.0 - args.alpha) * source[selected] + args.alpha * candidate[selected]
-    adjusted = np.clip(adjusted, 0.0, cap)
+    adjusted = clip_price_forecast(adjusted, cap)
 
     frame[args.output_col] = adjusted
     frame[f"{args.output_col}_applied"] = selected.astype("int64")
