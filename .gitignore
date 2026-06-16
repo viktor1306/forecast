@@ -1,0 +1,25 @@
+# Python/runtime noise
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+
+# Local training logs and duplicated model backups
+catboost_info/
+models_improved_backup*/
+models_improved_before_hour_fix_*/
+
+# Heavy intermediate experiment dumps.
+# Keep promoted/current best prediction artifacts explicitly below.
+output/*_predictions.csv
+!output/neural_best_predictions.csv
+!output/neural_experiment_daybias31_hb22_midday_d8_b050_abs250_v1_predictions.csv
+
+# Large prototype search dumps kept locally; compact grids/metrics/logs remain tracked.
+output/group_bias_*_results.csv
+output/low_regime_repair_results.csv
+
+# Local process logs from background retraining/update runs
+output/*.pid
+output/retrain_*.log
+output/update_missing_data.*.log
