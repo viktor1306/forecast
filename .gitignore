@@ -21,6 +21,10 @@ output/*
 !output/neural_experiment_overall_balanced_low_regime_v1_plot.png
 !output/neural_experiment_overall_balanced_low_regime_v1_predictions.csv
 !output/overall_balanced_goal_2026-06-17_18.md
+!output/supported_mixed_regime_rule_v2_summary.md
+!output/evaluate_supported_mixed_regime_rule_v2.md
+!output/evaluate_supported_mixed_regime_rule_v2.json
+!output/supported_mixed_regime_rule_v2_applied_rows.csv
 
 # Local process logs from background retraining/update runs
 output/*.pid

@@ -63,6 +63,23 @@ Legacy reference helper, не канонічна production-модель:
 - 2026-06-17 sanity check: applying the transferable new hourly repairs to current-best debug rows improved daily WMAPE `13.5561% -> 13.5187%`.
 - status: canonical model for validation metrics and active future-date promotion. Future forecasts must use this branch through `predict_overall_balanced_future.py` once the target-day input passes the required-column readiness check.
 
+Поточний supported post-selector для mixed rebound/collapse режимів 17/18:
+
+- script: `src/apply_mixed_regime_rule_adjuster.py`
+- prediction column: `supported_mixed_regime_rule_v2_pred`
+- source: `overall_balanced_low_regime_pred`
+- method: leakage-safe post-selector over forecast-time columns. Він не дивиться на факт цільового дня під час побудови прогнозу, а перемикає тільки вузькі години, де історично такі candidate substitutions уже мали підтримку.
+- простими словами: для `2026-06-18` базова модель правильно бачила частину дня, але помилилась у змішаному профілі: ранковий rebound був занизький, денний low-collapse місцями зависокий, а вечірній rebound недооцінений. V2 не змінив усю добу; він точково замінив 8 проблемних годин на вже наявні кандидати:
+  - h08 OREE (`07:00`) піднято через `tree_recent_calibrated_pred`;
+  - h11 OREE (`10:00`) опущено через weekly/high-profile low candidate;
+  - h12/h13/h16 OREE (`11:00/12:00/15:00`) опущено через `daybias31`;
+  - h18 OREE (`17:00`) опущено через high-profile candidate;
+  - h20/h24 OREE (`19:00/23:00`) піднято через `ensemble_neural_pred`.
+- result: history `all/3m/14d/13d = 4.3634% / 4.3283% / 7.5152% / 7.6253%`; target days `2026-06-17 = 12.8428%`, `2026-06-18 = 12.7386%`.
+- evidence: `34` historical applications with total historical absolute-error gain `+5226.91`; target applications `10` with total target gain `+8660.23`.
+- guardrails: `summer_daytime_low = 10.6576%`, `daytime_low_lt_1000 = 12.9565%`, `cap_spike_evening = 1.0662%`, predictions below `10` = `0`, predictions above cap = `0`, duplicate datetimes = `0`.
+- status: supported selector passed the 17/18 target gates and improved strict 3m/14d history metrics versus `overall_balanced_low_regime_v1`. It remains a post-selector layer; the base canonical forecast is still `overall_balanced_low_regime_pred`.
+
 Актуальні артефакти:
 
 - `output/neural_best_predictions.csv`
