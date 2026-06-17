@@ -7386,6 +7386,36 @@
 - Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_postdeep_selector_target15_v1_metrics.json`
 - Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_postdeep_selector_target15_v1_plot.png`
 
+### overall_balanced_low_regime_v1
+
+- Input experiment: `low_regime_postdeep_selector_target15_v1`.
+- Overall-balanced composite: base `night_hourratio_final_under5_pred`, output `overall_balanced_low_regime_pred`.
+- Method:
+  - Uses `low_regime_postdeep_selector_target15_pred` for hours `10-16`.
+  - Restores stronger fixed hourly candidates for hours `0,1,2,5,6,9,17,18,19`.
+  - Adds shifted h12 residual repair `h12_src_lag24_resid_q25_w8_b025`, rows `80`.
+  - Adds shifted h15 ratio repair `h15_lag24_roll7_ratio_median_w5_b025`, rows `80`.
+- Both shifted signals use only prior rows inside their forecast-time groups, so the target row actual is not used in its own repair.
+
+| variant | 3m WMAPE | 14d WMAPE | 13d WMAPE | summer_daytime_low | daytime_low_lt_1000 | cap_spike_evening | evening_19_23 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `night_hourratio_final_under5_pred` | 4.9896% | 8.6172% | 8.6138% | 24.7365% | 38.4534% | 1.0771% | 2.1478% |
+| `low_regime_postdeep_selector_target15_pred` | 5.0874% | 8.6518% | 8.6734% | 12.4854% | 14.7951% | 0.9926% | 2.7632% |
+| `overall_balanced_low_regime_pred` | 4.7736% | 8.1477% | 8.1228% | 12.3785% | 14.6265% | 1.0662% | 2.1344% |
+
+Hourly WMAPE groups for `overall_balanced_low_regime_pred`:
+
+| group | hours |
+|---|---|
+| `<5%` | `1,5,18,19,20,21,22,23` |
+| `5-10%` | `0,2,3,4,6,7,8,9,10,16,17` |
+| `10-15%` | `11,12,13,14,15` |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_overall_balanced_low_regime_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_overall_balanced_low_regime_v1_metrics.json`
+- Hourly: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_overall_balanced_low_regime_v1_hourly.csv`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_overall_balanced_low_regime_v1_plot.png`
+
 ### rare_lag24_midday_rescue_recheck
 
 - Input artifact: `neural_best_predictions.csv`.

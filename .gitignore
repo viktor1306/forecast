@@ -14,6 +14,7 @@ models_improved_before_hour_fix_*/
 output/*_predictions.csv
 !output/neural_best_predictions.csv
 !output/neural_experiment_daybias31_hb22_midday_d8_b050_abs250_v1_predictions.csv
+!output/neural_experiment_overall_balanced_low_regime_v1_predictions.csv
 
 # Large prototype search dumps kept locally; compact grids/metrics/logs remain tracked.
 output/group_bias_*_results.csv
