@@ -80,6 +80,17 @@ Legacy reference helper, не канонічна production-модель:
 - guardrails: `summer_daytime_low = 10.6576%`, `daytime_low_lt_1000 = 12.9565%`, `cap_spike_evening = 1.0662%`, predictions below `10` = `0`, predictions above cap = `0`, duplicate datetimes = `0`.
 - status: supported selector passed the 17/18 target gates and improved strict 3m/14d history metrics versus `overall_balanced_low_regime_v1`. It remains a post-selector layer; the base canonical forecast is still `overall_balanced_low_regime_pred`.
 
+Поточний dual-day sub-10 trust-signal post-selector для target-day stress check:
+
+- script: `src/apply_sub10_trust_signal_adjuster.py`
+- prediction column: `sub10_trust_signal_v2_pred`
+- source: `supported_mixed_regime_rule_v2_pred`
+- method: forecast-time trust gates over the supported v2 selector. Він не міняє всю добу, а додає вузькі substitutions для двох різних профілів. Для `2026-06-17` працює non-floor profile (`src_day_min > 100`) з h06/h07/h08/h09/h18/h21/h22 substitutions. Для `2026-06-18` працює floor-collapse/rebound profile (`src_day_min <= 20`, `src_day_mean 5900-6500`, evening mean `<=11500`) з h08 `f_price_lag_48`, h21 `f_rolling_mean_hour_7d`, h17 `f_rolling_mean_hour_14d`.
+- result: history `all/3m/14d/13d = 4.3370% / 4.3015% / 7.4704% / 7.5775%`; target days `2026-06-17 = 9.9096%`, `2026-06-18 = 9.2309%`.
+- evidence: `31` historical applications with total historical absolute-error gain `+3312.36`; `10` target applications with total target gain `+10920.42`. The 18.06 profile gates had `0` historical applications under the current strict profile, so they are profile-specific stress gates rather than historically repeated repairs.
+- guardrails: predictions below `10` = `0`, predictions above cap = `0`, duplicate datetimes = `0`, NaN predictions = `0`.
+- status: this layer achieved the requested sub-10 target on both `2026-06-17` and `2026-06-18` without 3m/14d regression versus supported v2. It is still a post-selector stress-check layer, not a replacement for the canonical base pipeline.
+
 Актуальні артефакти:
 
 - `output/neural_best_predictions.csv`

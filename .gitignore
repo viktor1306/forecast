@@ -25,6 +25,16 @@ output/*
 !output/evaluate_supported_mixed_regime_rule_v2.md
 !output/evaluate_supported_mixed_regime_rule_v2.json
 !output/supported_mixed_regime_rule_v2_applied_rows.csv
+!output/sub10_trust_signal_v1_summary.md
+!output/sub10_trust_signal_v1_summary.json
+!output/evaluate_sub10_trust_signal_v1.md
+!output/evaluate_sub10_trust_signal_v1.json
+!output/sub10_trust_signal_v1_applied_rows.csv
+!output/sub10_trust_signal_v2_summary.md
+!output/sub10_trust_signal_v2_summary.json
+!output/evaluate_sub10_trust_signal_v2.md
+!output/evaluate_sub10_trust_signal_v2.json
+!output/sub10_trust_signal_v2_applied_rows.csv
 
 # Local process logs from background retraining/update runs
 output/*.pid
