@@ -9,16 +9,18 @@ catboost_info/
 models_improved_backup*/
 models_improved_before_hour_fix_*/
 
-# Heavy intermediate experiment dumps.
-# Keep promoted/current best prediction artifacts explicitly below.
-output/*_predictions.csv
+# Generated output artifacts stay local by default.
+# Keep only the canonical current model artifacts and the active 17/18 goal report in git.
+output/*
+!output/neural_best_metrics.json
+!output/neural_best_plot.png
 !output/neural_best_predictions.csv
-!output/neural_experiment_daybias31_hb22_midday_d8_b050_abs250_v1_predictions.csv
+!output/neural_best_summary.md
+!output/neural_experiment_overall_balanced_low_regime_v1_hourly.csv
+!output/neural_experiment_overall_balanced_low_regime_v1_metrics.json
+!output/neural_experiment_overall_balanced_low_regime_v1_plot.png
 !output/neural_experiment_overall_balanced_low_regime_v1_predictions.csv
-
-# Large prototype search dumps kept locally; compact grids/metrics/logs remain tracked.
-output/group_bias_*_results.csv
-output/low_regime_repair_results.csv
+!output/overall_balanced_goal_2026-06-17_18.md
 
 # Local process logs from background retraining/update runs
 output/*.pid

@@ -6,7 +6,7 @@
 
 Актуально на `2026-06-17` для out-of-sample comparison; rolling-origin history artifact закінчується `2026-06-16`.
 
-Поточний promoted best:
+Legacy reference helper, не канонічна production-модель:
 
 - experiment: `daybias31_hb22_midday_d8_b050_abs250_v1`
 - prediction column: `daybias31_hb22_midday_d8_b050_abs250_pred`
@@ -16,23 +16,23 @@
 - evaluation rows: `2232`
 - duplicate factual datetimes: `0`
 
-Поточний research target best:
+Поточний canonical best, який має стати єдиним production pipeline:
 
 - experiment: `overall_balanced_low_regime_v1`
 - prediction column: `overall_balanced_low_regime_pred`
-- 3m WMAPE: `4.7736%`
-- 14d WMAPE: `8.1477%`
-- 13d WMAPE: `8.1228%`
-- all available WMAPE: `4.8440%`
+- 3m WMAPE: `4.3380%`
+- 14d WMAPE: `7.5560%`
+- 13d WMAPE: `7.6687%`
+- all available WMAPE: `4.4052%`
 - evaluation rows: `2232`
 - duplicate factual datetimes: `0`
 
 Цілі:
 
-- short-term goal: `14d WMAPE < 10%` - досягнуто в research-candidate `overall_balanced_low_regime_v1` з `8.1477%` (production promoted baseline ще `10.3096%`)
-- long-term goal: `3m WMAPE < 5%` - досягнуто в research-candidate `overall_balanced_low_regime_v1` з `4.7736%` (production promoted baseline ще `5.9937%`)
-- active overall goal: покращити загальну нейронку без регресії. `overall_balanced_low_regime_v1` зменшив `3m/14d/13d` від `night_hourratio_final_under5_v1` (`4.9896/8.6172/8.6138`) до `4.7736/8.1477/8.1228`, зберіг low-regime target і не погіршив evening/cap проти overall baseline.
-- active low-regime goal: `summer_daytime_low ~= 15%` і `daytime_low_lt_1000 ~= 15%`. Поточний overall-balanced repair покращив promoted baseline з `35.19% -> 12.38%` і `49.77% -> 14.63%`; обидва target-regimes уже на рівні `~15%`.
+- short-term goal: `14d WMAPE < 10%` - досягнуто в canonical `overall_balanced_low_regime_v1` з `7.5560%`
+- long-term goal: `3m WMAPE < 5%` - досягнуто в canonical `overall_balanced_low_regime_v1` з `4.3380%`
+- active overall goal: покращити загальну нейронку без регресії. `overall_balanced_low_regime_v1` зменшив `3m/14d/13d` від `night_hourratio_final_under5_v1` (`4.9896/8.6172/8.6138`) до `4.3380/7.5560/7.6687`, зберіг low-regime target і не погіршив evening/cap проти overall baseline.
+- active low-regime goal: `summer_daytime_low ~= 15%` і `daytime_low_lt_1000 ~= 15%`. Поточний overall-balanced repair покращив baseline з `35.19% -> 10.52%` і `49.77% -> 12.77%`; обидва target-regimes уже на рівні `~15%`.
 - guardrail: прогноз РДН не може бути нижче `10 грн/МВтг`; усі нові production forecasts кліпаються у діапазон `[10, price_cap]`
 
 Поточний target-balanced candidate, ще не promoted:
@@ -42,7 +42,7 @@
 - chain: `day13_16_anchor_lowrepair_after_night_v1` -> night hour/month bias -> day 14-16 hour/month repair -> night hour-8 repair -> morning source-bin/weekend repair -> day 14-16 ratio low-price repair -> broad source-bin/daytime repair -> night ratio repair -> morning 7-10 summer source-bin repairs -> day 13-16 ratio WMAPE repair -> evening repairs -> day 11-15 source-bin/weekend repair -> final morning/night hour-ratio repairs.
 - result: `3m WMAPE 4.9896%`, `14d WMAPE 8.6172%`, `daytime_low_lt_1000 38.45%`, `summer_daytime_low 24.74%`
 - validation: `2232` rows, duplicate factual datetimes `0`, min prediction `10.0`, predictions below `10` = `0`, predictions above cap = `0`
-- status: both strict research goals are reached; production forecast helper still uses the older `daybias31` promoted chain because the research candidate depends on intermediate tree/ensemble/anchor/current-chain columns that are not yet emitted for future-date forecasts.
+- status: both strict research goals are reached; this remains an intermediate artifact below the canonical `overall_balanced` chain.
 
 Поточний low-regime target candidate, ще не promoted:
 
@@ -53,14 +53,15 @@
 - result: `3m WMAPE 5.0874%`, `14d WMAPE 8.6518%`, `13d WMAPE 8.6734%`, `summer_daytime_low 12.49%`, `daytime_low_lt_1000 14.80%`, `cap_spike_evening 0.99%`, `evening_19_23 2.76%`
 - status: both low-regime target metrics are now at `~15%`; this is still a research best, not a completed production promotion.
 
-Поточний overall-balanced candidate, ще не promoted:
+Поточний overall-balanced canonical artifact для всіх подальших перевірок:
 
 - experiment: `overall_balanced_low_regime_v1`
 - prediction column: `overall_balanced_low_regime_pred`
 - source: `night_hourratio_final_under5_pred` + `low_regime_postdeep_selector_target15_pred` for hours `10-16`
-- method: keeps the under-5 overall chain outside daytime, applies post-deep low-regime repair during hours `10-16`, restores several stronger fixed hourly candidates, and adds shifted h12 residual + h15 ratio repairs.
-- result: `3m WMAPE 4.7736%`, `14d WMAPE 8.1477%`, `13d WMAPE 8.1228%`, `summer_daytime_low 12.38%`, `daytime_low_lt_1000 14.63%`, `cap_spike_evening 1.07%`, `evening_19_23 2.13%`
-- status: current best research artifact for global WMAPE and hourly-error rounding track.
+- method: keeps the under-5 overall chain outside daytime, applies post-deep low-regime repair during hours `10-16`, restores several stronger fixed hourly candidates, and adds shifted h12/h15 repairs, hourly-target shifted repairs, final shifted h13/h14/h15 repairs, final gated h00/h02/h03/h04/h06/h07/h08/h09/h10/h11/h12/h13/h14/h15/h16/h17 blends, and small candidate blends for h00/h02/h06/h11/h12/h13/h14/h15/h17.
+- result: `3m WMAPE 4.3380%`, `14d WMAPE 7.5560%`, `13d WMAPE 7.6687%`, `summer_daytime_low 10.52%`, `daytime_low_lt_1000 12.77%`, `cap_spike_evening 1.07%`, `evening_19_23 2.13%`
+- 2026-06-17 sanity check: applying the transferable new hourly repairs to current-best debug rows improved daily WMAPE `13.5561% -> 13.5187%`.
+- status: canonical model for validation metrics and active future-date promotion. Future forecasts must use this branch through `predict_overall_balanced_future.py` once the target-day input passes the required-column readiness check.
 
 Актуальні артефакти:
 
@@ -68,7 +69,6 @@
 - `output/neural_best_metrics.json`
 - `output/neural_best_plot.png`
 - `output/neural_best_summary.md`
-- `output/neural_experiments_log.md`
 
 ## Що зараз є найкращою моделлю
 
@@ -207,14 +207,14 @@
 | Low-regime roll7/diff target repair with evening guard | `5.1672%` | `8.7460%` |
 | Low-regime daytime deep target repair with evening guard | `5.1278%` | `8.6846%` |
 | Low-regime post-deep selector target repair with evening guard | `5.0874%` | `8.6518%` |
-| Overall-balanced low-regime composite | `4.7736%` | `8.1477%` |
+| Overall-balanced low-regime composite | `4.3380%` | `7.5560%` |
 
 ## Чесна оцінка
 
 Основний evaluator для promoted production artifact:
 
 ```powershell
-python src/evaluate_neural_hybrid.py output\neural_best_predictions.csv --pred-col daybias31_hb22_midday_d8_b050_abs250_pred
+python src/evaluate_neural_hybrid.py output\neural_best_predictions.csv --pred-col overall_balanced_low_regime_pred
 ```
 
 Research target best перевіряється з experiment artifact:
@@ -261,7 +261,7 @@ python src/evaluate_neural_hybrid.py output\neural_experiment_night_hourratio_fi
 
 ## Прайскепи
 
-Єдина логіка історичних прайскепів знаходиться в `price_caps.py`. Поточний promoted artifact був перерахований з оновленими caps; `36` рядків змінили cap, після цього `actual_gt_cap_rows = 0`.
+Єдина логіка історичних прайскепів знаходиться в `price_caps.py`. Поточні artifacts були перераховані з оновленими caps; `36` рядків змінили cap, після цього `actual_gt_cap_rows = 0`.
 
 Окрема нижня ринкова межа прогнозу знаходиться в `src/prediction_limits.py`: `MIN_MARKET_PRICE = 10.0`. Це не price cap зверху, а фізична/ринкова підлога для forecast output, щоб не отримувати неможливі `0 грн/МВтг` у денних low-price годинах.
 
@@ -345,13 +345,19 @@ python fix_missing_data.py auto
 python src/predict_tomorrow_v1.py 17.06.2026
 ```
 
-Застосувати поточний promoted hybrid-chain до дати:
+Застосувати canonical current-best wrapper до історичної дати:
 
 ```powershell
 python src\predict_current_best.py 17.06.2026
 ```
 
-Для future-date скрипту потрібен source-файл `output/prediction_YYYY-MM-DD_best_chain_debug.csv` або явний `--source-debug-csv`. Для дати, яка вже є в `output/neural_best_predictions.csv`, скрипт бере promoted rolling-origin prediction напряму і, якщо є факт, створює comparison.
+`src\predict_current_best.py` за замовчуванням бере prediction column з `output\neural_best_metrics.json`, тобто зараз `overall_balanced_low_regime_pred`. Для дат, яких немає в `neural_best_predictions.csv`, скрипт не підміняє canonical модель старим `daybias31` автоматично. Legacy future-date діагностику треба запускати явно:
+
+```powershell
+python src\predict_current_best.py 18.06.2026 --source-debug-csv output\prediction_2026-06-18_v1_as_source_debug.csv --pred-col daybias31_hb22_midday_d8_b050_abs250_pred --allow-legacy-future-fallback
+```
+
+Це не є канонічний `overall_balanced` pipeline; це лише legacy diagnostic. Основний future-date шлях для цієї моделі:
 
 Порівняти з фактом OREE:
 
@@ -365,20 +371,76 @@ python src/update_and_compare_v1.py 15.06.2026
 python src/evaluate_long_term_v1.py
 ```
 
-Оцінити поточний promoted hybrid artifact:
+Оцінити canonical `neural_best` artifact:
 
 ```powershell
-python src/evaluate_neural_hybrid.py output\neural_best_predictions.csv --pred-col daybias31_hb22_midday_d8_b050_abs250_pred
+python src/evaluate_neural_hybrid.py output\neural_best_predictions.csv --pred-col overall_balanced_low_regime_pred
 ```
+
+Оцінити canonical overall-balanced artifact:
+
+```powershell
+python src/evaluate_neural_hybrid.py output\neural_experiment_overall_balanced_low_regime_v1_predictions.csv --pred-col overall_balanced_low_regime_pred
+```
+
+Перевірити, чи CSV готовий до єдиного `overall_balanced` build без fallback на legacy `current_best`:
+
+```powershell
+python src\check_overall_balanced_readiness.py output\neural_experiment_overall_balanced_low_regime_v1_predictions.csv --strict
+python src\check_overall_balanced_readiness.py output\prediction_2026-06-18_current_best_debug.csv
+```
+
+`--strict` падає тільки на відсутніх required columns. Для аудиту прихованих `NaN` у required candidate columns використовується жорсткіший режим:
+
+```powershell
+python src\check_overall_balanced_readiness.py output\prediction_2026-06-18_overall_balanced_draft.csv --strict-non-null-required
+```
+
+Згенерувати перший пакет neural-hybrid candidate columns для future-date і зібрати probe-input:
+
+```powershell
+python src\predict_neural_hybrid_future.py 18.06.2026 --device cpu
+python src\assemble_overall_balanced_input.py --base-debug-csv output\prediction_2026-06-18_current_best_debug.csv --candidate-csv output\prediction_2026-06-18_neural_hybrid_candidates.csv --output-csv output\prediction_2026-06-18_overall_input_probe.csv --output-json output\prediction_2026-06-18_overall_input_probe_readiness.json
+```
+
+Збудувати canonical `overall_balanced` forecast для дати з готового forecast-time input:
+
+```powershell
+python src\predict_overall_balanced_future.py 18.06.2026
+```
+
+Цей entrypoint поєднує історичний `neural_best_predictions.csv` тільки до дня прогнозу з target-day input, тримає факт target-day як `NaN` під час build, а факт з `data\ready_for_train.csv` додає лише після forecast для comparison. За замовчуванням input priority такий: `overall_balanced_filled` -> `overall_balanced_draft` -> `overall_input_probe`. Якщо input має missing required columns, як короткий `overall_input_probe`, скрипт падає і не підміняє результат legacy helper'ом.
+
+Якщо попередній день уже відомий і є debug/history CSV, його можна явно додати як rolling history без відкриття факту target-day:
+
+```powershell
+python src\predict_overall_balanced_future.py 18.06.2026 --target-input-csv output\prediction_2026-06-18_overall_balanced_draft.csv --extra-history-csv output\prediction_2026-06-17_overall_balanced_debug.csv
+```
+
+Відновити окремий rolling-origin nonlinear candidate для future-date, наприклад `anomaly_hgb_ratio_b0025_q85w025_pred`, без факту target-day:
+
+```powershell
+python src\predict_nonlinear_stacker_future.py 18.06.2026 --target-input-csv output\prediction_2026-06-18_overall_balanced_draft.csv --source-col nonlinear_hgb_ratio_all_b015_cap00_roll7_lowcompact_highlag168_pred --output-col anomaly_hgb_ratio_b0025_q85w025_pred --target ratio --lookback-days 45 --min-train-days 21 --blend 0.025 --source-error-outlier-quantile 0.85 --source-error-outlier-weight 0.25 --model-type hgb --output-csv output\prediction_2026-06-18_anomaly_hgb_ratio_future.csv
+```
+
+Дозаповнити готовий `overall_balanced` input треба через `--fill-null-candidate`: цей режим заповнює тільки порожні overlap-колонки candidate values і не перетирає вже готовий forecast-time input.
+
+```powershell
+python src\assemble_overall_balanced_input.py --base-debug-csv output\prediction_2026-06-18_overall_balanced_draft.csv --candidate-csv output\prediction_2026-06-18_anomaly_hgb_ratio_future.csv --fill-null-candidate --output-csv output\prediction_2026-06-18_overall_balanced_filled.csv --output-json output\prediction_2026-06-18_overall_balanced_filled_readiness.json
+python src\check_overall_balanced_readiness.py output\prediction_2026-06-18_overall_balanced_filled.csv --strict-non-null-required
+python src\predict_overall_balanced_future.py 18.06.2026
+```
+
+На `2026-06-17` і `2026-06-18` safe-fill input відтворює ті самі values, що й поточний filled input, і підтверджує canonical forecast: `17.06 = 13.1011%`, `18.06 = 18.0653%`. Історичний artifact лишається тим самим: `overall_balanced_low_regime_v1` з `all/3m/14d/13d = 4.4052% / 4.3380% / 7.5560% / 7.6687%`.
 
 ## Відомі складні режими
 
-Промотована модель вже добре тримає вечірні cap-spike години, але найбільша відносна похибка була у денних low-price режимах, особливо коли фактична ціна нижче `1000 грн/МВтг`. Нова активна ціль для обох low-regime WMAPE - приблизно `15%`, бо саме ці режими створюють більшу частину короткострокової помилки.
+Legacy/current-best helper вже добре тримає вечірні cap-spike години, але найбільша відносна похибка була у денних low-price режимах, особливо коли фактична ціна нижче `1000 грн/МВтг`. Нова активна ціль для обох low-regime WMAPE - приблизно `15%`, бо саме ці режими створюють більшу частину короткострокової помилки.
 
-| regime | promoted WMAPE | daytime deep WMAPE | post-deep selector WMAPE | overall-balanced WMAPE | active target |
+| regime | legacy/current-best WMAPE | daytime deep WMAPE | post-deep selector WMAPE | overall-balanced WMAPE | active target |
 |---|---:|---:|---:|---:|---:|
-| `summer_daytime_low` | `35.19%` | `13.44%` | `12.49%` | `12.38%` | `~15%` |
-| `daytime_low_lt_1000` | `49.77%` | `21.03%` | `14.80%` | `14.63%` | `~15%` |
+| `summer_daytime_low` | `35.19%` | `13.44%` | `12.49%` | `10.52%` | `~15%` |
+| `daytime_low_lt_1000` | `49.77%` | `21.03%` | `14.80%` | `12.77%` | `~15%` |
 | `cap_spike_evening` | `0.99%` | `0.99%` | `0.99%` | `1.07%` | `<5% / no major regression` |
 | `evening_19_23` | `2.76%` | `2.76%` | `2.76%` | `2.13%` | `<5% / no regression vs overall baseline` |
 
@@ -395,10 +457,10 @@ python src/evaluate_neural_hybrid.py output\neural_best_predictions.csv --pred-c
 
 Поточний найкращий low-regime artifact `low_regime_postdeep_selector_target15_v1` додає leakage-safe post-deep selector: для h12/h13/h15 він бере candidate тільки тоді, коли той мав кращу shifted historical performance у forecast-time групі, і зберігає evening guard. Додаткові вузькі refinement gates та h12 high-source/low-profile restore добивають залишкові low-price rows без регресії: `3m 5.1278% -> 5.0874%`, `14d 8.6846% -> 8.6518%`, `13d 8.7084% -> 8.6734%`, `summer_daytime_low 13.44% -> 12.49%`, `daytime_low_lt_1000 21.03% -> 14.80%`, `cap_spike_evening 0.99%`, `evening_19_23 2.76%`. Обидва low-regime target metrics виконані в research artifact, але artifact ще не promoted у future-date pipeline.
 
-Поточний найкращий overall artifact `overall_balanced_low_regime_v1` прибирає регресію, яка з'явилась після evening guard у low-regime chain: він бере `night_hourratio_final_under5_pred` як основу, використовує post-deep repair тільки для годин `10-16`, додає fixed hourly restores для годин `0/1/2/5/6/9/17/18/19` і маленькі shifted h12 residual + h15 ratio repairs. У результаті global target покращився без втрати low-regime цілі: `3m 4.9896% -> 4.7736%`, `14d 8.6172% -> 8.1477%`, `13d 8.6138% -> 8.1228%`, `summer_daytime_low 24.74% -> 12.38%`, `daytime_low_lt_1000 38.45% -> 14.63%`, `evening_19_23 2.15% -> 2.13%`.
+Поточний найкращий overall artifact `overall_balanced_low_regime_v1` прибирає регресію, яка з'явилась після evening guard у low-regime chain: він бере `night_hourratio_final_under5_pred` як основу, використовує post-deep repair тільки для годин `10-16`, додає fixed hourly restores для годин `0/1/2/5/6/9/17/18/19`, shifted h12/h15 repairs, погодинні target repairs для h08/h09/h11/h13/h14/h15/h17, фінальні shifted h13/h14/h15 repairs, фінальні gated h00/h02/h03/h04/h06/h07/h08/h09/h10/h11/h12/h13/h14/h15/h16/h17 blends і маленькі candidate blends для h00/h02/h06/h11/h12/h13/h14/h15/h17. У результаті global target покращився без втрати low-regime цілі: `3m 4.9896% -> 4.3380%`, `14d 8.6172% -> 7.5560%`, `13d 8.6138% -> 7.6687%`, `summer_daytime_low 24.74% -> 10.52%`, `daytime_low_lt_1000 38.45% -> 12.77%`, `evening_19_23 2.15% -> 2.13%`. Transferable sanity-check на `2026-06-17` також покращив current-best daily WMAPE `13.5561% -> 13.5187%`.
 Діагностика candidate oracle показала, що серед уже наявних prediction columns можна отримати приблизно `daytime_low_lt_1000 = 14.54%` і `summer_daytime_low = 18.91%` лише з row-wise oracle-вибором кандидата. Це не production-valid прогноз, але підтверджує, що наступний реальний напрям - навчити leakage-safe selector, який наближається до oracle-вибору без факту цільового дня.
 Окремо перевірено просте копіювання попереднього дня: `f_price_lag_24` на `2026-06-17` давав `10.94%` WMAPE, але широке історичне копіювання руйнує low-price метрики (`daytime_low_lt_1000` понад `300%`). Тому в production helper додано тільки rare-profile rescue: він спрацьовує для OREE-годин `10-16`, коли весь денний блок має source майже на підлозі, а `lag24` має помірний rebound-профіль. На історичному `neural_best_predictions.csv` цей rare gate не спрацював жодного разу (`0` рядків), а 17.06 знизив WMAPE до `13.56%`.
-Out-of-sample DAM на `2026-06-17` з OREE підтягнуто без запису в train CSV: `prediction_2026-06-17_current_best.csv` після rare rescue має WMAPE `13.56%` проти факту. Forecast floor вже працює (`10 грн/МВтг`, не `0`), але current-best production chain без rescue занадто сильно валив денні low-block години до підлоги.
+Out-of-sample DAM на `2026-06-17` з OREE підтягнуто без запису в train CSV: legacy `prediction_2026-06-17_current_best.csv` після rare rescue має WMAPE `13.56%` проти факту. Forecast floor вже працює (`10 грн/МВтг`, не `0`), але current-best helper без rescue занадто сильно валив денні low-block години до підлоги.
 
 ## Негативні та непідвищені експерименти
 
@@ -441,6 +503,6 @@ python src/train_model_v1.py
 
 ## Наступний напрям
 
-Наступна ціль: productionize `overall_balanced_low_regime_v1` або зібрати еквівалентний future-date pipeline, який відтворює потрібні candidate/current-chain columns без факту цільового дня. Поточний best уже зменшив `3m/14d/13d` до `4.7736% / 8.1477% / 8.1228%` і тримає `summer_daytime_low/daytime_low_lt_1000` на `12.38% / 14.63%`; promotion потрібно робити без регресії погодинних груп, cap-spike/evening режимів і з обов'язковим lower floor `10 грн/МВтг`.
+Наступна ціль: покращувати тільки єдину `overall_balanced_low_regime_v1` модель/pipeline, яка вже дала `3m/14d/13d = 4.3380% / 7.5560% / 7.6687%` і тримає `summer_daytime_low/daytime_low_lt_1000` на `10.52% / 12.77%`. Будь-які нові правила або нейронні/selector-шари мають проходити без регресії погодинних груп, cap-spike/evening режимів і з обов'язковим lower floor `10 грн/МВтг`. Файл `prediction_YYYY-MM-DD.csv` поки генерує старий `predict_tomorrow_v1.py`; current-best output не має вважатися окремою production-гілкою.
 
-Нові фактичні/ринкові дні, наприклад РДН на `2026-06-17`, треба спершу використати як out-of-sample перевірку promoted chain і target-balanced candidate. Якщо похибка на такому дні зросла приблизно на `3 п.п.` проти попереднього прогнозу, це сигнал для regime repair, але не причина підганяти параметри напряму під один день.
+Нові фактичні/ринкові дні, наприклад РДН на `2026-06-17`, треба спершу використати як out-of-sample перевірку canonical chain і target-balanced candidate. Якщо похибка на такому дні зросла приблизно на `3 п.п.` проти попереднього прогнозу, це сигнал для regime repair, але не причина підганяти параметри напряму під один день.

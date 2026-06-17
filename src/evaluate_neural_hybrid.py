@@ -194,7 +194,7 @@ def main():
     parser.add_argument("--output-dir", default=os.path.join(os.path.dirname(__file__), "..", "output"))
     args = parser.parse_args()
 
-    predictions = pd.read_csv(args.predictions_csv)
+    predictions = pd.read_csv(args.predictions_csv, low_memory=False)
     artifacts = save_evaluation_artifacts(
         predictions,
         experiment_id=args.experiment_id,

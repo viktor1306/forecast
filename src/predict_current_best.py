@@ -80,9 +80,29 @@ LAGPROFILE3_COL = "lagprofile3_lag24_then_antilag48_eve_pred"
 LAGPROFILE4_COL = "lagprofile4_lp3_roll7_abs1000_morning_an015_pred"
 HOURBIAS21_COL = "hourbias21_lp4_peakerr_r2_bn015_wmape40_pred"
 HOURBIAS22_COL = "hourbias22_hb21_peakerr_r8_bn020_wmape40_pred"
-FINAL_COL = "daybias31_hb22_midday_d8_b050_abs250_pred"
+LEGACY_FINAL_COL = "daybias31_hb22_midday_d8_b050_abs250_pred"
+CANONICAL_FINAL_COL = "overall_balanced_low_regime_pred"
 RARE_LAG24_RESCUE_APPLIED_COL = "rare_lag24_midday_rescue_applied"
 RARE_LAG24_RESCUE_DAY_GATE_COL = "rare_lag24_midday_rescue_day_gate"
+SOURCE_DEBUG_FEATURE_ALIASES = {
+    "price_lag_24": "f_price_lag_24",
+    "price_lag_48": "f_price_lag_48",
+    "price_lag_168": "f_price_lag_168",
+    "rolling_mean_hour_3d": "f_rolling_mean_hour_3d",
+    "rolling_mean_hour_7d": "f_rolling_mean_hour_7d",
+    "rolling_mean_hour_14d": "f_rolling_mean_hour_14d",
+    "rolling_mean_24": "f_rolling_mean_24",
+    "rolling_min_24": "f_rolling_min_24",
+    "feelslike": "f_feelslike",
+    "humidity": "f_humidity",
+    "windspeed": "f_windspeed",
+    "windgust": "f_windgust",
+    "winddir": "f_winddir",
+    "cloudcover": "f_cloudcover",
+    "solarradiation": "f_solarradiation",
+    "solarenergy": "f_solarenergy",
+    "uvindex": "f_uvindex",
+}
 
 
 CHAIN = [
@@ -1267,7 +1287,7 @@ CHAIN = [
         apply_day_bias_adjustment,
         {
             "source_col": HOURBIAS22_COL,
-            "output_col": FINAL_COL,
+            "output_col": LEGACY_FINAL_COL,
             "rolling_days": 8,
             "beta": 0.5,
             "hours": "11-16",
@@ -1288,9 +1308,18 @@ def parse_target_date(value):
     raise ValueError(f"Unsupported date format: {value}. Use DD.MM.YYYY or YYYY-MM-DD.")
 
 
-def load_best_history(path):
-    frame = pd.read_csv(path, parse_dates=["datetime"])
-    required = {"datetime", "actual", "price_cap", SOURCE_COL, FINAL_COL}
+def load_default_prediction_col(output_dir):
+    metrics_path = Path(output_dir) / "neural_best_metrics.json"
+    if not metrics_path.exists():
+        return CANONICAL_FINAL_COL
+    with open(metrics_path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+    return payload.get("prediction_column") or CANONICAL_FINAL_COL
+
+
+def load_best_history(path, pred_col):
+    frame = pd.read_csv(path, parse_dates=["datetime"], low_memory=False)
+    required = {"datetime", "actual", "price_cap", SOURCE_COL, pred_col}
     missing = required.difference(frame.columns)
     if missing:
         raise ValueError(f"Best predictions file is missing columns: {sorted(missing)}")
@@ -1324,6 +1353,19 @@ def rows_from_source_debug(source_debug_csv, target_day):
             pd.to_numeric(source["production_base_pred"], errors="coerce"),
             rows["price_cap"],
         )
+    for source_col, target_col in SOURCE_DEBUG_FEATURE_ALIASES.items():
+        if source_col in source.columns:
+            rows[target_col] = pd.to_numeric(source[source_col], errors="coerce")
+        elif target_col in source.columns:
+            rows[target_col] = pd.to_numeric(source[target_col], errors="coerce")
+    if (
+        "f_renewable_pressure_index" not in rows.columns
+        and {"f_solarradiation", "f_cloudcover", "f_windspeed"}.issubset(rows.columns)
+    ):
+        solar = pd.to_numeric(rows["f_solarradiation"], errors="coerce").fillna(0.0)
+        cloud = pd.to_numeric(rows["f_cloudcover"], errors="coerce").fillna(0.0).clip(0.0, 100.0)
+        wind = pd.to_numeric(rows["f_windspeed"], errors="coerce").fillna(0.0)
+        rows["f_renewable_pressure_index"] = solar * (1.0 - cloud / 100.0) + wind * 40.0
     rows["forecast_source_note"] = f"{Path(source_debug_csv).name}.final_pred_as_{SOURCE_COL}"
     return rows
 
@@ -1339,10 +1381,10 @@ def apply_current_best_chain(history, target_rows):
 
 def apply_rare_lag24_midday_rescue(frame):
     frame = add_lag24_from_history(frame, "f_price_lag_24").copy()
-    if FINAL_COL not in frame.columns or "f_price_lag_24" not in frame.columns:
+    if LEGACY_FINAL_COL not in frame.columns or "f_price_lag_24" not in frame.columns:
         return frame
 
-    source = pd.to_numeric(frame[FINAL_COL], errors="coerce")
+    source = pd.to_numeric(frame[LEGACY_FINAL_COL], errors="coerce")
     lag24 = pd.to_numeric(frame["f_price_lag_24"], errors="coerce")
     hour = frame["datetime"].dt.hour
     day_key = frame["datetime"].dt.normalize()
@@ -1386,17 +1428,17 @@ def apply_rare_lag24_midday_rescue(frame):
     frame[RARE_LAG24_RESCUE_APPLIED_COL] = selected.astype("int64")
     rescued = source.copy()
     rescued.loc[selected] = lag24.loc[selected]
-    frame[FINAL_COL] = clip_price_forecast(rescued, frame["price_cap"])
+    frame[LEGACY_FINAL_COL] = clip_price_forecast(rescued, frame["price_cap"])
     return frame
 
 
-def save_forecast(day_frame, output_dir, date_iso):
+def save_forecast(day_frame, output_dir, date_iso, pred_col):
     day_frame = day_frame.copy()
-    day_frame[FINAL_COL] = clip_price_forecast(day_frame[FINAL_COL], day_frame["price_cap"])
+    day_frame[pred_col] = clip_price_forecast(day_frame[pred_col], day_frame["price_cap"])
     public = pd.DataFrame(
         {
             "Hour": day_frame["datetime"].dt.hour + 1,
-            "Predicted_Price": day_frame[FINAL_COL].round(2),
+            "Predicted_Price": day_frame[pred_col].round(2),
             "Price_Cap": day_frame["price_cap"].round(2),
         }
     )
@@ -1409,6 +1451,18 @@ def save_forecast(day_frame, output_dir, date_iso):
         "price_cap",
         "production_base_pred",
         "f_price_lag_24",
+        "f_price_lag_48",
+        "f_price_lag_168",
+        "f_rolling_mean_hour_7d",
+        "f_rolling_mean_hour_14d",
+        "f_rolling_mean_24",
+        "f_rolling_min_24",
+        "f_windspeed",
+        "f_windgust",
+        "f_cloudcover",
+        "f_solarradiation",
+        "f_solarenergy",
+        "f_renewable_pressure_index",
         SOURCE_COL,
         "daybias1_roll3_b042_day_abs300_pred",
         "daybias2_roll1_bn021_dayeve_wmape12_pred",
@@ -1507,7 +1561,9 @@ def save_forecast(day_frame, output_dir, date_iso):
         f"{HOURBIAS21_COL}_hour_wmape_signal",
         HOURBIAS22_COL,
         f"{HOURBIAS22_COL}_hour_wmape_signal",
-        FINAL_COL,
+        LEGACY_FINAL_COL,
+        CANONICAL_FINAL_COL,
+        pred_col,
     ]
     debug_cols += [col for col in day_frame.columns if col.endswith("_applied")]
     debug_cols = [col for col in dict.fromkeys(debug_cols) if col in day_frame.columns]
@@ -1516,12 +1572,12 @@ def save_forecast(day_frame, output_dir, date_iso):
 
     plot_path = output_dir / f"prediction_{date_iso}_current_best.png"
     plt.figure(figsize=(13, 6))
-    plt.plot(public["Hour"], public["Predicted_Price"], marker="o", label="Current best forecast")
+    plt.plot(public["Hour"], public["Predicted_Price"], marker="o", label=f"{pred_col} forecast")
     plt.plot(public["Hour"], public["Price_Cap"], linestyle="--", alpha=0.5, label="Price cap")
     plt.axhline(MIN_MARKET_PRICE, linestyle=":", alpha=0.5, color="gray", label="Price floor")
     plt.xticks(range(1, 25))
     plt.grid(True, alpha=0.25)
-    plt.title(f"Current best forecast for {date_iso}")
+    plt.title(f"{pred_col} forecast for {date_iso}")
     plt.xlabel("Hour")
     plt.ylabel("UAH/MWh")
     plt.legend()
@@ -1531,10 +1587,10 @@ def save_forecast(day_frame, output_dir, date_iso):
     return public, csv_path, debug_path, plot_path
 
 
-def save_comparison(day_frame, output_dir, date_iso):
+def save_comparison(day_frame, output_dir, date_iso, pred_col):
     day_frame = day_frame.copy()
-    day_frame[FINAL_COL] = clip_price_forecast(day_frame[FINAL_COL], day_frame["price_cap"])
-    actual_rows = day_frame.dropna(subset=["actual", FINAL_COL]).copy()
+    day_frame[pred_col] = clip_price_forecast(day_frame[pred_col], day_frame["price_cap"])
+    actual_rows = day_frame.dropna(subset=["actual", pred_col]).copy()
     if actual_rows.empty:
         return None
 
@@ -1542,7 +1598,7 @@ def save_comparison(day_frame, output_dir, date_iso):
         {
             "Hour": actual_rows["datetime"].dt.hour + 1,
             "Actual_Price": actual_rows["actual"].astype(float),
-            "Predicted_Price": actual_rows[FINAL_COL].astype(float),
+            "Predicted_Price": actual_rows[pred_col].astype(float),
             "Price_Cap": actual_rows["price_cap"].astype(float),
         }
     )
@@ -1564,7 +1620,7 @@ def save_comparison(day_frame, output_dir, date_iso):
 
     metrics = {
         "date": date_iso,
-        "prediction_column": FINAL_COL,
+        "prediction_column": pred_col,
         "rows": int(len(comparison)),
         "wmape": float(wmape),
         "mae": float(mae),
@@ -1577,10 +1633,10 @@ def save_comparison(day_frame, output_dir, date_iso):
     plot_path = output_dir / f"comparison_{date_iso}_current_best.png"
     plt.figure(figsize=(13, 6))
     plt.plot(comparison["Hour"], comparison["Actual_Price"], marker="o", label="Actual")
-    plt.plot(comparison["Hour"], comparison["Predicted_Price"], marker="x", linestyle="--", label="Current best forecast")
+    plt.plot(comparison["Hour"], comparison["Predicted_Price"], marker="x", linestyle="--", label=f"{pred_col} forecast")
     plt.xticks(range(1, 25))
     plt.grid(True, alpha=0.25)
-    plt.title(f"{date_iso} current best vs actual, WMAPE={wmape:.2f}%")
+    plt.title(f"{date_iso} {pred_col} vs actual, WMAPE={wmape:.2f}%")
     plt.xlabel("Hour")
     plt.ylabel("UAH/MWh")
     plt.legend()
@@ -1600,18 +1656,40 @@ def main():
         default=None,
         help="Required for dates not present in neural_best_predictions.csv. Expected columns: datetime, final_pred, optional price_cap.",
     )
+    parser.add_argument(
+        "--pred-col",
+        default=None,
+        help="Prediction column to publish. Defaults to output/neural_best_metrics.json prediction_column.",
+    )
+    parser.add_argument(
+        "--allow-legacy-future-fallback",
+        action="store_true",
+        help=(
+            "Allow building a future-date forecast through the legacy daybias31 chain when "
+            "the canonical neural_best prediction column is not available for that date."
+        ),
+    )
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     target_day = parse_target_date(args.date)
     date_iso = target_day.strftime("%Y-%m-%d")
-    history = load_best_history(args.best_predictions)
+    requested_pred_col = args.pred_col or load_default_prediction_col(output_dir)
+    history = load_best_history(args.best_predictions, requested_pred_col)
 
     day_mask = history["datetime"].dt.normalize() == target_day
-    if day_mask.sum() == 24 and history.loc[day_mask, FINAL_COL].notna().all():
+    output_pred_col = requested_pred_col
+    if day_mask.sum() == 24 and history.loc[day_mask, requested_pred_col].notna().all():
         result_frame = history.copy()
     else:
+        if requested_pred_col != LEGACY_FINAL_COL and not args.allow_legacy_future_fallback:
+            raise FileNotFoundError(
+                f"{requested_pred_col} is the configured neural_best column, but {date_iso} is not present "
+                f"in {args.best_predictions}. This script will not silently fall back to legacy "
+                f"{LEGACY_FINAL_COL}. Build a forecast-time overall-balanced input first, or rerun with "
+                f"--pred-col {LEGACY_FINAL_COL} --allow-legacy-future-fallback for an explicit legacy diagnostic."
+            )
         source_debug = args.source_debug_csv
         if source_debug is None:
             default_source = output_dir / f"prediction_{date_iso}_best_chain_debug.csv"
@@ -1624,15 +1702,19 @@ def main():
             )
         target_rows = rows_from_source_debug(source_debug, target_day)
         result_frame = apply_current_best_chain(history, target_rows)
+        output_pred_col = LEGACY_FINAL_COL
 
     day_frame = result_frame[result_frame["datetime"].dt.normalize() == target_day].copy().sort_values("datetime")
     if len(day_frame) != 24:
         raise ValueError(f"Expected 24 output rows for {date_iso}, found {len(day_frame)}")
 
-    public, csv_path, debug_path, plot_path = save_forecast(day_frame, output_dir, date_iso)
-    comparison = save_comparison(day_frame, output_dir, date_iso)
+    public, csv_path, debug_path, plot_path = save_forecast(day_frame, output_dir, date_iso, output_pred_col)
+    comparison = save_comparison(day_frame, output_dir, date_iso, output_pred_col)
 
     print(public.to_string(index=False))
+    print(f"prediction_column={output_pred_col}")
+    if output_pred_col != requested_pred_col:
+        print(f"legacy_future_fallback_from={requested_pred_col}")
     print(f"forecast_csv={csv_path}")
     print(f"debug_csv={debug_path}")
     print(f"plot_png={plot_path}")

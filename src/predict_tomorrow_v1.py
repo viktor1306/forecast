@@ -417,7 +417,44 @@ def predict_tomorrow(target_date_str=None):
     latest_csv = os.path.join(output_dir, "prediction_latest.csv")
     res.to_csv(output_csv, index=False)
     res.to_csv(latest_csv, index=False)
+    debug_feature_cols = [
+        'price_lag_24',
+        'price_lag_48',
+        'price_lag_168',
+        'rolling_mean_hour_3d',
+        'rolling_mean_hour_7d',
+        'rolling_mean_hour_14d',
+        'rolling_mean_24',
+        'rolling_min_24',
+        'feelslike',
+        'dew',
+        'humidity',
+        'precip',
+        'precipprob',
+        'windgust',
+        'windspeed',
+        'winddir',
+        'sealevelpressure',
+        'cloudcover',
+        'visibility',
+        'solarradiation',
+        'solarenergy',
+        'uvindex',
+    ]
+    debug = pd.DataFrame({
+        'datetime': predictions.index,
+        'production_base_pred': base_predictions.reindex(future_index).values,
+        'final_pred': predictions.values,
+        'price_cap': df_predict['price_cap'].values,
+    })
+    feature_frame = df_full.reindex(future_index)
+    for col in debug_feature_cols:
+        if col in feature_frame.columns:
+            debug[col] = feature_frame[col].values
+    debug_output_csv = os.path.join(output_dir, f"prediction_{date_iso}_v1_as_source_debug.csv")
+    debug.to_csv(debug_output_csv, index=False)
     print(f"✅ CSV прогнозу збережено у {output_csv}")
+    print(f"✅ Debug CSV прогнозу збережено у {debug_output_csv}")
     print(res)
 
 if __name__ == "__main__":

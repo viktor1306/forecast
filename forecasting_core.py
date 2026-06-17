@@ -15,6 +15,15 @@ from price_caps import apply_price_caps_to_frame, get_price_cap
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+REGIONAL_WEATHER_LOCATIONS = [
+    {"name": "kyiv_center", "latitude": 50.45, "longitude": 30.52},
+    {"name": "lviv_west", "latitude": 49.84, "longitude": 24.03},
+    {"name": "odesa_south", "latitude": 46.48, "longitude": 30.73},
+    {"name": "chernihiv_north", "latitude": 51.50, "longitude": 31.29},
+    {"name": "donetsk_east", "latitude": 48.02, "longitude": 37.80},
+]
+
+
 class ForecastingManager:
     def __init__(self, base_dir=None):
         if base_dir is None:
@@ -294,14 +303,17 @@ class ForecastingManager:
             self.log(f"Error updating CSV: {e}")
             return False
 
-    def fetch_weather_data(self, start_date_str, end_date_str):
+    def fetch_weather_data(self, start_date_str, end_date_str, locations=None):
         """
         Fetch weather data from Open-Meteo API (No limits, no key required).
         Long ranges are split between archive and forecast endpoints because
         the forecast endpoint does not cover older historical dates.
+        Weather is averaged across representative Ukrainian regions instead
+        of using Kyiv only, because national power prices depend on country-wide
+        renewable conditions.
         Returns a pandas DataFrame or None.
         """
-        lat, lon = 50.45, 30.52 # Kyiv
+        locations = locations or REGIONAL_WEATHER_LOCATIONS
         
         try:
             s_dt = datetime.strptime(start_date_str, "%d.%m.%Y")
@@ -310,20 +322,24 @@ class ForecastingManager:
             self.log(f"Date format error: {e}")
             return None
 
-        def request_chunk(base_url, chunk_start, chunk_end):
+        def request_chunk(base_url, chunk_start, chunk_end, location):
             s_date = chunk_start.strftime("%Y-%m-%d")
             e_date = chunk_end.strftime("%Y-%m-%d")
             params = {
-                "latitude": lat,
-                "longitude": lon,
+                "latitude": location["latitude"],
+                "longitude": location["longitude"],
                 "start_date": s_date,
                 "end_date": e_date,
                 "hourly": "apparent_temperature,dew_point_2m,relative_humidity_2m,precipitation,precipitation_probability,snowfall,snow_depth,wind_gusts_10m,wind_speed_10m,wind_direction_10m,pressure_msl,cloud_cover,visibility,shortwave_radiation,uv_index",
                 "timezone": "auto"
             }
 
-            self.log(f"Requesting Open-Meteo weather for {lat},{lon} from {s_date} to {e_date}...")
-            response = requests.get(base_url, params=params)
+            self.log(
+                "Requesting Open-Meteo weather for "
+                f"{location['name']} ({location['latitude']},{location['longitude']}) "
+                f"from {s_date} to {e_date}..."
+            )
+            response = requests.get(base_url, params=params, timeout=30)
             if response.status_code != 200:
                 self.log(f"API Error: {response.status_code}, {response.text}")
                 return None
@@ -333,7 +349,9 @@ class ForecastingManager:
                 self.log("No hourly data in response")
                 return None
 
-            return pd.DataFrame(data["hourly"])
+            frame = pd.DataFrame(data["hourly"])
+            frame["_weather_location"] = location["name"]
+            return frame
 
         try:
             today = datetime.now()
@@ -356,10 +374,11 @@ class ForecastingManager:
                 ))
 
             frames = []
-            for base_url, chunk_start, chunk_end in chunks:
-                chunk = request_chunk(base_url, chunk_start, chunk_end)
-                if chunk is not None and not chunk.empty:
-                    frames.append(chunk)
+            for location in locations:
+                for base_url, chunk_start, chunk_end in chunks:
+                    chunk = request_chunk(base_url, chunk_start, chunk_end, location)
+                    if chunk is not None and not chunk.empty:
+                        frames.append(chunk)
 
             if not frames:
                 return None
@@ -386,6 +405,37 @@ class ForecastingManager:
             }
             df_weather = df_weather.rename(columns=mapping)
 
+            df_weather["datetime"] = pd.to_datetime(df_weather["datetime"])
+            numeric_cols = [
+                col for col in df_weather.columns
+                if col not in {"datetime", "_weather_location"}
+            ]
+            for col in numeric_cols:
+                df_weather[col] = pd.to_numeric(df_weather[col], errors="coerce")
+
+            if "winddir" in df_weather.columns:
+                wind_rad = np.deg2rad(df_weather["winddir"])
+                df_weather["_winddir_sin"] = np.sin(wind_rad)
+                df_weather["_winddir_cos"] = np.cos(wind_rad)
+
+            mean_cols = [
+                col for col in numeric_cols
+                if col != "winddir" and col in df_weather.columns
+            ]
+            grouped = df_weather.groupby("datetime", as_index=False)[mean_cols].mean()
+
+            if {"_winddir_sin", "_winddir_cos"}.issubset(df_weather.columns):
+                wind_group = df_weather.groupby("datetime")[["_winddir_sin", "_winddir_cos"]].mean()
+                wind_degrees = np.rad2deg(np.arctan2(wind_group["_winddir_sin"], wind_group["_winddir_cos"]))
+                wind_degrees = (wind_degrees + 360.0) % 360.0
+                grouped = grouped.merge(
+                    wind_degrees.rename("winddir").reset_index(),
+                    on="datetime",
+                    how="left",
+                )
+
+            df_weather = grouped.sort_values("datetime").reset_index(drop=True)
+
             df_weather['precipprob'] = df_weather['precipprob'].fillna(0.0)
             df_weather['uvindex'] = df_weather['uvindex'].fillna(0.0)
             df_weather['visibility'] = df_weather['visibility'].fillna(15.0) # Default 15km
@@ -403,9 +453,10 @@ class ForecastingManager:
 
             df_weather['preciptype'] = df_weather.apply(get_precip_type, axis=1)
 
-            df_weather = df_weather.drop_duplicates(subset=['datetime'], keep='last')
             df_weather['date_formatted'] = pd.to_datetime(df_weather['datetime']).dt.strftime("%d.%m.%Y")
             df_weather['hour_int'] = pd.to_datetime(df_weather['datetime']).dt.hour
+            df_weather['weather_source'] = "regional_open_meteo_mean"
+            df_weather['weather_locations'] = ",".join(location["name"] for location in locations)
 
             return df_weather
         except Exception as e:

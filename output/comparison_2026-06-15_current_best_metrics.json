@@ -1,8 +1,0 @@
-{
-  "date": "2026-06-15",
-  "prediction_column": "daybias31_hb22_midday_d8_b050_abs250_pred",
-  "rows": 24,
-  "wmape": 12.767125456268172,
-  "mae": 766.6806722358906,
-  "bias": -471.9476742137176
-}
