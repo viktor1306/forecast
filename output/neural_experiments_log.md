@@ -7183,3 +7183,221 @@
 - Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_hourratio_final_under5_v1_predictions.csv`
 - Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_hourratio_final_under5_v1_metrics.json`
 - Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_night_hourratio_final_under5_v1_plot.png`
+
+### low_regime_group_selector_target15_v1
+
+- Input experiment: `night_hourratio_final_under5_v1`.
+- Shifted candidate selector: source `night_hourratio_final_under5_pred`, output `low_regime_group_selector_target15_pred`, candidate group `hour,source_bin,lag24_bin`, hours `11-15`, source threshold `250.0`, min previous group rows `2`, min shifted APE advantage `0.05`.
+- Formula: choose a candidate only when its previous in-group APE is at least `0.05` better than the base source; each row uses only earlier rows in the same forecast-time group.
+- Adjusted rows: `42`.
+
+| variant | 3m WMAPE | 14d WMAPE | 13d WMAPE | summer_daytime_low | daytime_low_lt_1000 |
+|---|---:|---:|---:|---:|---:|
+| `night_hourratio_final_under5_pred` | 4.9896% | 8.6172% | 8.6138% | 24.7365% | 38.4534% |
+| `low_regime_group_selector_target15_pred` | 4.9855% | 8.5840% | 8.5783% | 23.6832% | 37.8113% |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_group_selector_target15_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_group_selector_target15_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_group_selector_target15_v1_plot.png`
+
+### low_regime_group_selector_target15_eveguard_v1
+
+- Input experiment: `low_regime_group_selector_target15_v1`.
+- Evening guard: output `low_regime_group_selector_target15_eveguard_pred` keeps selector output outside hours `19-23`, and restores `daybias31_hb22_midday_d8_b050_abs250_pred` during hours `19-23` to preserve production cap/evening guardrails.
+- Evening guard rows: `465`.
+
+| variant | 3m WMAPE | 14d WMAPE | 13d WMAPE | summer_daytime_low | daytime_low_lt_1000 | cap_spike_evening | evening_19_23 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `low_regime_group_selector_target15_pred` | 4.9855% | 8.5840% | 8.5783% | 23.6832% | 37.8113% | 1.0771% | 2.1478% |
+| `low_regime_group_selector_target15_eveguard_pred` | 5.2290% | 9.0132% | 9.0574% | 23.6832% | 37.8113% | 0.9926% | 2.7632% |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_group_selector_target15_eveguard_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_group_selector_target15_eveguard_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_group_selector_target15_eveguard_v1_plot.png`
+
+### low_regime_shifted_actual_repair_v1
+
+- Input experiment: `low_regime_group_selector_target15_eveguard_v1`.
+- Shifted actual-median repair: source `low_regime_group_selector_target15_eveguard_pred`, output `low_regime_shifted_actual_repair_pred`, group `hour,source_bin,weekend`, hours `13-16`, source threshold `250.0`, rolling previous group rows `13`, stat `median`, blend `0.5`.
+- Each row uses only earlier actual rows in the same forecast-time group; current target actual is not used in its own signal.
+- Evening guard restores `daybias31_hb22_midday_d8_b050_abs250_pred` for hours `19-23`.
+- Adjusted rows: `102`; evening guard rows: `465`.
+
+| variant | 3m WMAPE | 14d WMAPE | 13d WMAPE | summer_daytime_low | daytime_low_lt_1000 | cap_spike_evening | evening_19_23 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `low_regime_group_selector_target15_eveguard_pred` | 5.2290% | 9.0132% | 9.0574% | 23.6832% | 37.8113% | 0.9926% | 2.7632% |
+| `low_regime_shifted_actual_repair_pred` | 5.2269% | 9.0017% | 9.0451% | 23.3180% | 37.4731% | 0.9926% | 2.7632% |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_shifted_actual_repair_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_shifted_actual_repair_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_shifted_actual_repair_v1_plot.png`
+
+### low_regime_multistage_target15_repair_v1
+
+- Input experiment: `low_regime_shifted_actual_repair_v1`.
+- Multistage shifted low-regime repair: source `low_regime_shifted_actual_repair_pred`, output `low_regime_multistage_target15_repair_pred`.
+- Steps:
+  - `h15_16_lag24_weekend_ratio_mean3`: shifted ratio mean, group `hour,lag24_bin,weekend`, rows `44`.
+  - `h11_12_source_rollmin_resid_q25_8`: shifted residual q25, group `hour,source_bin,rollmin_bin`, rows `62`.
+  - `h10_samehour_resid_mean21`: shifted same-hour residual mean, rows `39`.
+  - `h10_16_samehour_resid_q75_5`: shifted same-hour residual q75, rows `323`.
+  - `h10_lag24_weekend_resid_q25_2`: shifted residual q25, group `hour,lag24_bin,weekend`, rows `9`.
+  - `h15_16_fine_source_ratio_median3`: shifted ratio median, group `hour,fine_source_bin`, rows `87`.
+- Every step uses only earlier observations in the same delivery-hour/group signal; the target row actual is not used in its own signal.
+- Evening guard restores `daybias31_hb22_midday_d8_b050_abs250_pred` for hours `19-23`; evening guard rows: `465`.
+
+| variant | 3m WMAPE | 14d WMAPE | 13d WMAPE | summer_daytime_low | daytime_low_lt_1000 | cap_spike_evening | evening_19_23 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `low_regime_shifted_actual_repair_pred` | 5.2269% | 9.0017% | 9.0451% | 23.3180% | 37.4731% | 0.9926% | 2.7632% |
+| `low_regime_multistage_target15_repair_pred` | 5.2085% | 8.8558% | 8.8895% | 18.1409% | 33.5717% | 0.9926% | 2.7632% |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_multistage_target15_repair_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_multistage_target15_repair_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_multistage_target15_repair_v1_plot.png`
+
+### low_regime_candidate_restore_target15_v1
+
+- Input experiment: `low_regime_multistage_target15_repair_v1`.
+- Forecast-time candidate restore: source `low_regime_multistage_target15_repair_pred`, output `low_regime_candidate_restore_target15_pred`.
+- Restore steps:
+  - `low100_midchain_blend`: blend `0.75` to `morning7_10_hourweekend_after_night_sourcebin_pred` for hours `10-16`, source `<=100`, rows `201`.
+  - `h12_rollmin500_day14_restore`: restore `day14_16_ratio_lowrepair_after_morning_pred` for hour `12`, `f_rolling_min_24 <= 500`, rows `58`.
+  - `h14_day13_restore`: restore `day13_16_ratio_wmape15_after_morning7_pred` for hour `14`, rows `93`.
+- All gates use forecast-time source/rolling fields and prior rolling-origin candidate columns; target-row actual is not used.
+- Evening guard restores `daybias31_hb22_midday_d8_b050_abs250_pred` for hours `19-23`; evening guard rows: `465`.
+
+| variant | 3m WMAPE | 14d WMAPE | 13d WMAPE | summer_daytime_low | daytime_low_lt_1000 | cap_spike_evening | evening_19_23 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `low_regime_multistage_target15_repair_pred` | 5.2085% | 8.8558% | 8.8895% | 18.1409% | 33.5717% | 0.9926% | 2.7632% |
+| `low_regime_candidate_restore_target15_pred` | 5.2051% | 8.8440% | 8.8770% | 17.8271% | 31.9811% | 0.9926% | 2.7632% |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_candidate_restore_target15_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_candidate_restore_target15_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_candidate_restore_target15_v1_plot.png`
+
+### low_regime_final_restore_target15_v1
+
+- Input experiment: `low_regime_candidate_restore_target15_v1`.
+- Final forecast-time candidate restore: source `low_regime_candidate_restore_target15_pred`, output `low_regime_final_restore_target15_pred`.
+- Restore steps:
+  - `h10_partial_multistage_restore`: blend `0.75` to `low_regime_multistage_target15_repair_pred` for hour `10`, rows `93`.
+  - `h10_12_highsource_day14_blend`: blend `0.75` to `day14_16_ratio_lowrepair_after_morning_pred` for hours `10-12`, source `[1000,3000)`, rows `81`.
+  - `h13_16_midsource_day14_blend`: blend `0.75` to `day14_16_ratio_lowrepair_after_morning_pred` for hours `13-16`, source `[250,500)`, rows `13`.
+  - `h16_rebound_day14_restore`: restore `day14_16_ratio_lowrepair_after_morning_pred` for hour `16`, source `[500,1000)`, rows `13`.
+- All gates use forecast-time source values and prior rolling-origin candidate columns; target-row actual is not used.
+- Evening guard restores `daybias31_hb22_midday_d8_b050_abs250_pred` for hours `19-23`; evening guard rows: `465`.
+
+| variant | 3m WMAPE | 14d WMAPE | 13d WMAPE | summer_daytime_low | daytime_low_lt_1000 | cap_spike_evening | evening_19_23 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `low_regime_candidate_restore_target15_pred` | 5.2051% | 8.8440% | 8.8770% | 17.8271% | 31.9811% | 0.9926% | 2.7632% |
+| `low_regime_final_restore_target15_pred` | 5.1892% | 8.8105% | 8.8427% | 16.8639% | 30.6973% | 0.9926% | 2.7632% |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_final_restore_target15_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_final_restore_target15_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_final_restore_target15_v1_plot.png`
+
+### low_regime_roll7diff_restore_target15_v1
+
+- Input experiment: `low_regime_final_restore_target15_v1`.
+- Shifted roll7/source-diff repair: source `low_regime_final_restore_target15_pred`, output `low_regime_roll7diff_restore_target15_pred`.
+- Steps:
+  - `h11_roll7diff_s250_1000_w2_q25_resid_neg`: shifted residual q25, group `hour,src_roll7_diff_bin`, rows `14`.
+  - `h11_sourcebin_s500_1500_w3_q25_actual_blend`: shifted actual q25 blend, group `hour,source_bin`, rows `14`.
+  - `h10_16_roll7diff_s100_500_w13_mean_resid_neg`: shifted residual mean, group `hour,src_roll7_diff_bin`, rows `32`.
+  - `h13_source_roll7_s500_1500_w3_q25_resid_half`: shifted residual q25, group `hour,source_bin,roll7_bin`, rows `17`.
+- Every shifted signal uses only earlier observations in the same forecast-time group; target-row actual is not used in its own signal.
+- Evening guard restores `daybias31_hb22_midday_d8_b050_abs250_pred` for hours `19-23`; evening guard rows: `465`.
+
+| variant | 3m WMAPE | 14d WMAPE | 13d WMAPE | summer_daytime_low | daytime_low_lt_1000 | cap_spike_evening | evening_19_23 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `low_regime_final_restore_target15_pred` | 5.1892% | 8.8105% | 8.8427% | 16.8639% | 30.6973% | 0.9926% | 2.7632% |
+| `low_regime_roll7diff_restore_target15_pred` | 5.1672% | 8.7460% | 8.7738% | 15.3351% | 28.1122% | 0.9926% | 2.7632% |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_roll7diff_restore_target15_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_roll7diff_restore_target15_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_roll7diff_restore_target15_v1_plot.png`
+
+### low_regime_daytime_target15_deep_v1
+
+- Input experiment: `low_regime_roll7diff_restore_target15_v1`.
+- Deeper shifted daytime repair: source `low_regime_roll7diff_restore_target15_pred`, output `low_regime_daytime_target15_deep_pred`.
+- Steps:
+  - `h16_lag24_ratio_q75_w21_s100_1000_b075`: shifted ratio q75, group `hour,lag24_bin`, rows `16`.
+  - `h10_srcroll7_ratio_q25_w1_s500_1500_b100`: shifted ratio q25, group `hour,src_roll7_diff_bin`, rows `10`.
+  - `h10_16_srcroll7_ratio_mean_w3_s100_250_b100`: shifted ratio mean, group `hour,src_roll7_diff_bin`, rows `8`.
+  - `h12_lag168_resid_q25_w5_s250_600_bn125`: shifted residual q25, group `hour,lag168_bin`, rows `6`.
+  - `h15_16_roll7_resid_q75_w5_s10_250_bn100`: shifted residual q75, group `hour,roll7_bin`, rows `46`.
+  - `h10_lag24_resid_q25_w3_s250_1000_b075`: shifted residual q25, group `hour,lag24_bin`, rows `8`.
+  - `h16_rollmin_resid_mean_w13_s10_500_bn100`: shifted residual mean, group `hour,rollmin_bin`, rows `15`.
+  - `h15_srclag24_resid_median_w21_s10_500_b075`: shifted residual median, group `hour,src_lag24_diff_bin`, rows `37`.
+  - `h12_13_roll14_resid_median_w13_s500_1500_bn125`: shifted residual median, group `hour,roll14_bin`, rows `47`.
+  - `h10_16_lag24_ratio_q25_w8_s500_1500_b025`: shifted ratio q25, group `hour,lag24_bin`, rows `129`.
+  - `h13_15_srcroll3_resid_q25_w5_s50_250_bn075`: shifted residual q25, group `hour,src_roll3_diff_bin`, rows `16`.
+  - `h12_samehour_resid_q75_w3_s500_1500_bn025`: shifted same-hour residual q75, rows `25`.
+  - `h11_analog_polish_s50_250`: narrow blend to `analog_ratio_all_b012_k4_c050_pred`, rows `3`.
+- Shifted signals are leakage-safe by construction (`shift(1)` inside forecast-time groups). The final h11 polish uses only forecast-time source gates and an already materialized prior candidate column.
+- Evening guard restores `daybias31_hb22_midday_d8_b050_abs250_pred` for hours `19-23`; evening guard rows: `465`.
+
+| variant | 3m WMAPE | 14d WMAPE | 13d WMAPE | summer_daytime_low | daytime_low_lt_1000 | cap_spike_evening | evening_19_23 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `low_regime_roll7diff_restore_target15_pred` | 5.1672% | 8.7460% | 8.7738% | 15.3351% | 28.1122% | 0.9926% | 2.7632% |
+| `low_regime_daytime_target15_deep_pred` | 5.1278% | 8.6846% | 8.7084% | 13.4434% | 21.0292% | 0.9926% | 2.7632% |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_daytime_target15_deep_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_daytime_target15_deep_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_daytime_target15_deep_v1_plot.png`
+
+### low_regime_postdeep_selector_target15_v1
+
+- Input experiment: `low_regime_daytime_target15_deep_v1`.
+- Post-deep shifted candidate selector: source `low_regime_daytime_target15_deep_pred`, output `low_regime_postdeep_selector_target15_pred`.
+- Candidate pool: 121 already-materialized prediction/feature columns, selected only from prior shifted performance in forecast-time groups.
+- Steps:
+  - `h12_15_lag24_ape_mean2`: shifted APE mean, group `hour,lag24_bin`, rows `14`.
+  - `h13_roll14_ae_median5`: shifted AE median, group `hour,roll14_bin`, rows `4`.
+  - `h15_src_lag24_ae_mean8`: shifted AE mean, group `hour,src_lag24_diff_bin`, rows `12`.
+  - `h12_source_lag24_ae_mean2`: shifted AE mean, group `hour,source_bin,lag24_bin`, rows `7`.
+  - `h12_13_src_roll7_ape_mean2`: shifted APE mean, group `hour,src_roll7_diff_bin`, rows `13`.
+  - `h13_15_source_roll7_ratio_ae_median3`: shifted AE median, group `hour,source_roll7_ratio_bin`, rows `6`.
+  - `h12_src_lag24_ape_mean2_refine`: shifted APE mean, group `hour,src_lag24_diff_bin`, rows `2`.
+  - `h15_src_roll7_ae_mean2_refine`: shifted AE mean, group `hour,src_roll7_diff_bin`, rows `6`.
+  - `h12_15_source_roll7_ratio_ae_median3_refine`: shifted AE median, group `hour,source_roll7_ratio_bin`, rows `4`.
+  - `h12_13_src_roll7_ape_mean3_refine`: shifted APE mean, group `hour,src_roll7_diff_bin`, rows `5`.
+  - `h13_src_roll7_ape_mean5_refine`: shifted APE mean, group `hour,src_roll7_diff_bin`, rows `6`.
+  - `h13_source_roll7_ratio_ape_mean5_refine`: shifted APE mean, group `hour,source_roll7_ratio_bin`, rows `1`.
+  - `h13_roll14_ape_median3_refine`: shifted APE median, group `hour,roll14_bin`, rows `2`.
+  - `h12_src_lag24_ae_mean2_refine`: shifted AE mean, group `hour,src_lag24_diff_bin`, rows `3`.
+  - `h13_15_src_roll7_ae_mean5_refine`: shifted AE mean, group `hour,src_roll7_diff_bin`, rows `7`.
+  - `h13_15_src_roll7_ape_median5_refine`: shifted APE median, group `hour,src_roll7_diff_bin`, rows `8`.
+  - `h13_roll14_ape_median5_refine`: shifted APE median, group `hour,roll14_bin`, rows `4`.
+  - `h15_source_roll7_ratio_ae_median3_refine`: shifted AE median, group `hour,source_roll7_ratio_bin`, rows `2`.
+  - `h14_source_roll7_ratio_ae_mean2_final`: shifted AE mean, group `hour,source_roll7_ratio_bin`, rows `6`.
+- Forecast-time restore steps:
+  - `h12_highsource_lowprofile_highprofile_restore`: restore to `high_profile_lag168_day_down_weather_lowcollapse_cap00_lag48eve_capnight_pred` for h12 source `[1500,3000)`, lag24 `<=150`, roll7 `<=50`, roll14 `<=100`, rows `1`.
+- All candidate scores are shifted by one row inside delivery-time groups before selection. The selector therefore uses only historical candidate quality, never the target row's actual error.
+- Evening guard restores `daybias31_hb22_midday_d8_b050_abs250_pred` for hours `19-23`; evening guard rows: `465`.
+
+| variant | 3m WMAPE | 14d WMAPE | 13d WMAPE | summer_daytime_low | daytime_low_lt_1000 | cap_spike_evening | evening_19_23 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `low_regime_daytime_target15_deep_pred` | 5.1278% | 8.6846% | 8.7084% | 13.4434% | 21.0292% | 0.9926% | 2.7632% |
+| `low_regime_postdeep_selector_target15_pred` | 5.0874% | 8.6518% | 8.6734% | 12.4854% | 14.7951% | 0.9926% | 2.7632% |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_postdeep_selector_target15_v1_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_postdeep_selector_target15_v1_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_low_regime_postdeep_selector_target15_v1_plot.png`
+
+### rare_lag24_midday_rescue_recheck
+
+- Input artifact: `neural_best_predictions.csv`.
+- Production helper guard added in `src/predict_current_best.py`: for OREE hours `10-16` (CSV hours `9-15`), copy `f_price_lag_24` only when the whole day block has a rare source-floor/rebound profile: weekday, source mean `<=800`, source median `<=100`, at least `4` rows source `<=100`, lag24 min `>=500`, lag24 max `<=4500`, and lag24-source mean gap `>=500`.
+- Historical rare rescue applied rows: `0`; the only historical movement is the already enforced forecast floor clip to `10`.
+- `2026-06-17` comparison WMAPE after rescue: `13.5561%`.
+
+| variant | 3m WMAPE | 14d WMAPE | 13d WMAPE | summer_daytime_low | daytime_low_lt_1000 |
+|---|---:|---:|---:|---:|---:|
+| `daybias31_hb22_midday_d8_b050_abs250_pred` before rescue/floor recheck | 5.9937% | 10.3096% | 10.3771% | 35.1888% | 49.7700% |
+| `daybias31_hb22_midday_d8_b050_abs250_pred` after rare rescue/floor recheck | 5.9866% | 10.3012% | 10.3682% | 34.9235% | 48.6972% |
+
+- Predictions: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rare_lag24_midday_rescue_recheck_predictions.csv`
+- Metrics: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rare_lag24_midday_rescue_recheck_metrics.json`
+- Plot: `C:\Programs\Programming\Project\price_forecasting\output\neural_experiment_rare_lag24_midday_rescue_recheck_plot.png`

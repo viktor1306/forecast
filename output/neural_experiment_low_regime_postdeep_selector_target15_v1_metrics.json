@@ -1,0 +1,1587 @@
+{
+  "prediction_column": "low_regime_postdeep_selector_target15_pred",
+  "period": {
+    "start": "2026-03-16T00:00:00",
+    "end": "2026-06-16T23:00:00",
+    "rows": 2232
+  },
+  "all_available": {
+    "n": 2232,
+    "wmape": 5.159926280826929,
+    "mae": 289.7472333449622,
+    "bias": -17.232190564203677
+  },
+  "last_3m": {
+    "n": 2209,
+    "wmape": 5.087359423299708,
+    "mae": 285.02570025308245,
+    "bias": -21.566243315738557
+  },
+  "last_14d": {
+    "n": 337,
+    "wmape": 8.651788280039813,
+    "mae": 426.4038654661564,
+    "bias": -91.32405588841806
+  },
+  "last_13d": {
+    "n": 313,
+    "wmape": 8.67339685083715,
+    "mae": 431.6588309648651,
+    "bias": -97.4328399204485
+  },
+  "by_hour": {
+    "0": {
+      "n": 93,
+      "wmape": 5.836031366975384,
+      "mae": 429.7350966304971,
+      "bias": 7.399559601012008
+    },
+    "1": {
+      "n": 93,
+      "wmape": 4.414708457032826,
+      "mae": 242.40868874270444,
+      "bias": -93.92914687715985
+    },
+    "2": {
+      "n": 93,
+      "wmape": 7.227412817480102,
+      "mae": 327.5583712619925,
+      "bias": -5.548499557376811
+    },
+    "3": {
+      "n": 93,
+      "wmape": 6.25700468732586,
+      "mae": 269.6265230440685,
+      "bias": 32.08672365515845
+    },
+    "4": {
+      "n": 93,
+      "wmape": 5.643946899956374,
+      "mae": 241.15078230378901,
+      "bias": 65.42171416711547
+    },
+    "5": {
+      "n": 93,
+      "wmape": 4.61506678896516,
+      "mae": 228.6744900568248,
+      "bias": -45.173373654995686
+    },
+    "6": {
+      "n": 93,
+      "wmape": 5.9384747238635995,
+      "mae": 356.48765296114595,
+      "bias": 31.09010658236674
+    },
+    "7": {
+      "n": 93,
+      "wmape": 6.239118891529255,
+      "mae": 413.1887010636707,
+      "bias": 23.17396906176373
+    },
+    "8": {
+      "n": 93,
+      "wmape": 6.441986325679665,
+      "mae": 397.6530099716593,
+      "bias": -71.66608701033527
+    },
+    "9": {
+      "n": 93,
+      "wmape": 7.986765995694305,
+      "mae": 381.11713725957054,
+      "bias": -7.188367035607029
+    },
+    "10": {
+      "n": 93,
+      "wmape": 7.410541219591976,
+      "mae": 214.53966244186282,
+      "bias": -148.78874518954578
+    },
+    "11": {
+      "n": 93,
+      "wmape": 14.107022397766015,
+      "mae": 245.48727898461883,
+      "bias": -88.1865136685094
+    },
+    "12": {
+      "n": 93,
+      "wmape": 14.4442974738393,
+      "mae": 191.23122268270114,
+      "bias": -87.08106150375674
+    },
+    "13": {
+      "n": 93,
+      "wmape": 12.721378487449872,
+      "mae": 171.03804463515957,
+      "bias": -55.73902721169148
+    },
+    "14": {
+      "n": 93,
+      "wmape": 11.899921676036799,
+      "mae": 185.70569921108336,
+      "bias": -2.3488248774661167
+    },
+    "15": {
+      "n": 93,
+      "wmape": 11.975425290500006,
+      "mae": 231.230409378733,
+      "bias": -77.24584356387304
+    },
+    "16": {
+      "n": 93,
+      "wmape": 5.992328298773787,
+      "mae": 180.16628336204192,
+      "bias": -71.56940357339101
+    },
+    "17": {
+      "n": 93,
+      "wmape": 7.204816913564936,
+      "mae": 395.18187582743354,
+      "bias": -170.35215864611146
+    },
+    "18": {
+      "n": 93,
+      "wmape": 4.7601531673431285,
+      "mae": 396.9682797771883,
+      "bias": 46.22883565294111
+    },
+    "19": {
+      "n": 93,
+      "wmape": 1.5856035699670732,
+      "mae": 167.408781914957,
+      "bias": 32.91683413587143
+    },
+    "20": {
+      "n": 93,
+      "wmape": 1.9382119404483855,
+      "mae": 227.24680729634323,
+      "bias": 59.055309050823524
+    },
+    "21": {
+      "n": 93,
+      "wmape": 3.033766304059448,
+      "mae": 367.3781419796472,
+      "bias": 136.54926714693707
+    },
+    "22": {
+      "n": 93,
+      "wmape": 3.4718620943467804,
+      "mae": 369.48167903749237,
+      "bias": 57.86141492338307
+    },
+    "23": {
+      "n": 93,
+      "wmape": 4.245794426122833,
+      "mae": 323.2689804539064,
+      "bias": 19.460744851558996
+    }
+  },
+  "by_price_bin": {
+    "lt_500": {
+      "n": 262,
+      "wmape": 60.66936409934153,
+      "mae": 54.31445661614805,
+      "bias": 17.75803522250216
+    },
+    "500_1000": {
+      "n": 89,
+      "wmape": 15.790690289009326,
+      "mae": 121.92345044882023,
+      "bias": -6.631376206667017
+    },
+    "1000_3000": {
+      "n": 257,
+      "wmape": 12.754854840502889,
+      "mae": 256.65575992348136,
+      "bias": -57.329797615490456
+    },
+    "3000_7000": {
+      "n": 986,
+      "wmape": 5.485395952269885,
+      "mae": 285.8840720821468,
+      "bias": 29.8145369123887
+    },
+    "7000_12000": {
+      "n": 417,
+      "wmape": 4.993826520303654,
+      "mae": 435.0088378903949,
+      "bias": -63.198064205181005
+    },
+    "gt_12000": {
+      "n": 221,
+      "wmape": 2.930432323369494,
+      "mae": 418.0694087282966,
+      "bias": -139.52237429899787
+    }
+  },
+  "regimes": {
+    "summer_daytime_low": {
+      "n": 70,
+      "wmape": 12.485404702902745,
+      "mae": 93.54600292187718,
+      "bias": -38.84707148718891
+    },
+    "daytime_low_lt_1000": {
+      "n": 311,
+      "wmape": 14.79508926065128,
+      "mae": 36.96423654208484,
+      "bias": -9.265851457211324
+    },
+    "cap_spike_evening": {
+      "n": 107,
+      "wmape": 0.9925754513094803,
+      "mae": 147.86274420653226,
+      "bias": -61.32137935784955
+    },
+    "evening_19_23": {
+      "n": 465,
+      "wmape": 2.763213248495275,
+      "mae": 290.95687813646924,
+      "bias": 61.16871402171481
+    }
+  },
+  "variant_metrics": {
+    "daybias31_hb22_midday_d8_b050_abs250_pred": {
+      "prediction_column": "daybias31_hb22_midday_d8_b050_abs250_pred",
+      "period": {
+        "start": "2026-03-16T00:00:00",
+        "end": "2026-06-16T23:00:00",
+        "rows": 2232
+      },
+      "all_available": {
+        "n": 2232,
+        "wmape": 6.057073689798028,
+        "mae": 340.12508091574534,
+        "bias": -26.232152000657937
+      },
+      "last_3m": {
+        "n": 2209,
+        "wmape": 5.993657840853553,
+        "mae": 335.8022072005702,
+        "bias": -32.107764757794385
+      },
+      "last_14d": {
+        "n": 337,
+        "wmape": 10.309559440084053,
+        "mae": 508.1072090780189,
+        "bias": -95.90542677072062
+      },
+      "last_13d": {
+        "n": 313,
+        "wmape": 10.377105757832139,
+        "mae": 516.4492548028915,
+        "bias": -106.19514514106551
+      },
+      "by_hour": {
+        "0": {
+          "n": 93,
+          "wmape": 6.192643103289575,
+          "mae": 455.99413626344744,
+          "bias": 52.23256435534708
+        },
+        "1": {
+          "n": 93,
+          "wmape": 4.58500791980954,
+          "mae": 251.7597183445632,
+          "bias": -70.5172762556239
+        },
+        "2": {
+          "n": 93,
+          "wmape": 7.417377093037401,
+          "mae": 336.16786822458727,
+          "bias": -19.139106172097073
+        },
+        "3": {
+          "n": 93,
+          "wmape": 7.349326920194045,
+          "mae": 316.69681632490267,
+          "bias": 4.862917722796325
+        },
+        "4": {
+          "n": 93,
+          "wmape": 7.656587296954874,
+          "mae": 327.1455329340879,
+          "bias": 47.115707040124
+        },
+        "5": {
+          "n": 93,
+          "wmape": 6.262609033090602,
+          "mae": 310.3094695165568,
+          "bias": -80.66825130537003
+        },
+        "6": {
+          "n": 93,
+          "wmape": 6.540821620723521,
+          "mae": 392.64664016153586,
+          "bias": 23.48451928075842
+        },
+        "7": {
+          "n": 93,
+          "wmape": 7.853121751731675,
+          "mae": 520.0768301271366,
+          "bias": 24.840042471538194
+        },
+        "8": {
+          "n": 93,
+          "wmape": 8.186185670187134,
+          "mae": 505.31950975436615,
+          "bias": -127.00275029636285
+        },
+        "9": {
+          "n": 93,
+          "wmape": 10.006759949558717,
+          "mae": 477.5083816497878,
+          "bias": 17.595880458919574
+        },
+        "10": {
+          "n": 93,
+          "wmape": 11.305232108491323,
+          "mae": 327.29332561707025,
+          "bias": -132.92380501257847
+        },
+        "11": {
+          "n": 93,
+          "wmape": 15.841419075758061,
+          "mae": 275.66886579684757,
+          "bias": -105.980600280607
+        },
+        "12": {
+          "n": 93,
+          "wmape": 20.297159534631643,
+          "mae": 268.71854735914434,
+          "bias": -92.94028002212528
+        },
+        "13": {
+          "n": 93,
+          "wmape": 20.888395991635612,
+          "mae": 280.8430241658855,
+          "bias": -59.17059699074177
+        },
+        "14": {
+          "n": 93,
+          "wmape": 15.505298971283562,
+          "mae": 241.96986041828143,
+          "bias": -51.99666569425707
+        },
+        "15": {
+          "n": 93,
+          "wmape": 15.827300932646828,
+          "mae": 305.60528626232394,
+          "bias": -105.03625635920088
+        },
+        "16": {
+          "n": 93,
+          "wmape": 9.561538079677048,
+          "mae": 287.4787049622364,
+          "bias": -116.65794305220547
+        },
+        "17": {
+          "n": 93,
+          "wmape": 8.140245618113708,
+          "mae": 446.48983751490135,
+          "bias": -197.69137154938983
+        },
+        "18": {
+          "n": 93,
+          "wmape": 4.562979736123621,
+          "mae": 380.5251958978809,
+          "bias": 54.178053536711296
+        },
+        "19": {
+          "n": 93,
+          "wmape": 1.5856035699670732,
+          "mae": 167.408781914957,
+          "bias": 32.91683413587143
+        },
+        "20": {
+          "n": 93,
+          "wmape": 1.9382119404483855,
+          "mae": 227.24680729634323,
+          "bias": 59.055309050823524
+        },
+        "21": {
+          "n": 93,
+          "wmape": 3.033766304059448,
+          "mae": 367.3781419796472,
+          "bias": 136.54926714693707
+        },
+        "22": {
+          "n": 93,
+          "wmape": 3.4718620943467804,
+          "mae": 369.48167903749237,
+          "bias": 57.86141492338307
+        },
+        "23": {
+          "n": 93,
+          "wmape": 4.245794426122833,
+          "mae": 323.2689804539064,
+          "bias": 19.460744851558996
+        }
+      },
+      "by_price_bin": {
+        "lt_500": {
+          "n": 262,
+          "wmape": 121.92034551312302,
+          "mae": 109.14960813097056,
+          "bias": 47.91719190544378
+        },
+        "500_1000": {
+          "n": 89,
+          "wmape": 33.17145507104415,
+          "mae": 256.12422159180056,
+          "bias": -37.96991116084811
+        },
+        "1000_3000": {
+          "n": 257,
+          "wmape": 15.92527860156351,
+          "mae": 320.4516658628071,
+          "bias": -115.4136418915679
+        },
+        "3000_7000": {
+          "n": 986,
+          "wmape": 6.436604132499209,
+          "mae": 335.45848208426884,
+          "bias": 31.207011276949654
+        },
+        "7000_12000": {
+          "n": 417,
+          "wmape": 5.441071183176618,
+          "mae": 473.9680168402514,
+          "bias": -75.07846186723987
+        },
+        "gt_12000": {
+          "n": 221,
+          "wmape": 3.076672190900543,
+          "mae": 438.9326835644515,
+          "bias": -169.80196382660498
+        }
+      },
+      "regimes": {
+        "summer_daytime_low": {
+          "n": 70,
+          "wmape": 35.18875258429936,
+          "mae": 263.6492152555355,
+          "bias": -35.51480984567061
+        },
+        "daytime_low_lt_1000": {
+          "n": 311,
+          "wmape": 49.76996761822823,
+          "mae": 124.34591122237727,
+          "bias": 12.638261343639183
+        },
+        "cap_spike_evening": {
+          "n": 107,
+          "wmape": 0.9925754513094803,
+          "mae": 147.86274420653226,
+          "bias": -61.32137935784955
+        },
+        "evening_19_23": {
+          "n": 465,
+          "wmape": 2.763213248495275,
+          "mae": 290.95687813646924,
+          "bias": 61.16871402171481
+        }
+      }
+    },
+    "low_regime_daytime_target15_deep_pred": {
+      "prediction_column": "low_regime_daytime_target15_deep_pred",
+      "period": {
+        "start": "2026-03-16T00:00:00",
+        "end": "2026-06-16T23:00:00",
+        "rows": 2232
+      },
+      "all_available": {
+        "n": 2232,
+        "wmape": 5.199855810473338,
+        "mae": 291.98941087118027,
+        "bias": -17.36269287285884
+      },
+      "last_3m": {
+        "n": 2209,
+        "wmape": 5.127796231681569,
+        "mae": 287.2912232220815,
+        "bias": -21.698104408051066
+      },
+      "last_14d": {
+        "n": 337,
+        "wmape": 8.684591589031744,
+        "mae": 428.0205783700667,
+        "bias": -92.87889411630886
+      },
+      "last_13d": {
+        "n": 313,
+        "wmape": 8.708372602425623,
+        "mae": 433.39950907546483,
+        "bias": -99.10689897092517
+      },
+      "by_hour": {
+        "0": {
+          "n": 93,
+          "wmape": 5.836031366975384,
+          "mae": 429.7350966304971,
+          "bias": 7.399559601012008
+        },
+        "1": {
+          "n": 93,
+          "wmape": 4.414708457032826,
+          "mae": 242.40868874270444,
+          "bias": -93.92914687715985
+        },
+        "2": {
+          "n": 93,
+          "wmape": 7.227412817480102,
+          "mae": 327.5583712619925,
+          "bias": -5.548499557376811
+        },
+        "3": {
+          "n": 93,
+          "wmape": 6.25700468732586,
+          "mae": 269.6265230440685,
+          "bias": 32.08672365515845
+        },
+        "4": {
+          "n": 93,
+          "wmape": 5.643946899956374,
+          "mae": 241.15078230378901,
+          "bias": 65.42171416711547
+        },
+        "5": {
+          "n": 93,
+          "wmape": 4.61506678896516,
+          "mae": 228.6744900568248,
+          "bias": -45.173373654995686
+        },
+        "6": {
+          "n": 93,
+          "wmape": 5.9384747238635995,
+          "mae": 356.48765296114595,
+          "bias": 31.09010658236674
+        },
+        "7": {
+          "n": 93,
+          "wmape": 6.239118891529255,
+          "mae": 413.1887010636707,
+          "bias": 23.17396906176373
+        },
+        "8": {
+          "n": 93,
+          "wmape": 6.441986325679665,
+          "mae": 397.6530099716593,
+          "bias": -71.66608701033527
+        },
+        "9": {
+          "n": 93,
+          "wmape": 7.986765995694305,
+          "mae": 381.11713725957054,
+          "bias": -7.188367035607029
+        },
+        "10": {
+          "n": 93,
+          "wmape": 7.410541219591976,
+          "mae": 214.53966244186282,
+          "bias": -148.78874518954578
+        },
+        "11": {
+          "n": 93,
+          "wmape": 14.107022397766015,
+          "mae": 245.48727898461883,
+          "bias": -88.1865136685094
+        },
+        "12": {
+          "n": 93,
+          "wmape": 16.431337073156737,
+          "mae": 217.53807580481555,
+          "bias": -77.32463523017668
+        },
+        "13": {
+          "n": 93,
+          "wmape": 13.80585854706041,
+          "mae": 185.6188032396298,
+          "bias": -63.706322576001206
+        },
+        "14": {
+          "n": 93,
+          "wmape": 12.071582348540376,
+          "mae": 188.3845710626953,
+          "bias": -4.164645685776031
+        },
+        "15": {
+          "n": 93,
+          "wmape": 12.50605418981953,
+          "mae": 241.47618642977218,
+          "bias": -80.35120907255745
+        },
+        "16": {
+          "n": 93,
+          "wmape": 5.992328298773787,
+          "mae": 180.16628336204192,
+          "bias": -71.56940357339101
+        },
+        "17": {
+          "n": 93,
+          "wmape": 7.204816913564936,
+          "mae": 395.18187582743354,
+          "bias": -170.35215864611146
+        },
+        "18": {
+          "n": 93,
+          "wmape": 4.7601531673431285,
+          "mae": 396.9682797771883,
+          "bias": 46.22883565294111
+        },
+        "19": {
+          "n": 93,
+          "wmape": 1.5856035699670732,
+          "mae": 167.408781914957,
+          "bias": 32.91683413587143
+        },
+        "20": {
+          "n": 93,
+          "wmape": 1.9382119404483855,
+          "mae": 227.24680729634323,
+          "bias": 59.055309050823524
+        },
+        "21": {
+          "n": 93,
+          "wmape": 3.033766304059448,
+          "mae": 367.3781419796472,
+          "bias": 136.54926714693707
+        },
+        "22": {
+          "n": 93,
+          "wmape": 3.4718620943467804,
+          "mae": 369.48167903749237,
+          "bias": 57.86141492338307
+        },
+        "23": {
+          "n": 93,
+          "wmape": 4.245794426122833,
+          "mae": 323.2689804539064,
+          "bias": 19.460744851558996
+        }
+      },
+      "by_price_bin": {
+        "lt_500": {
+          "n": 262,
+          "wmape": 68.3260222623636,
+          "mae": 61.169106138091074,
+          "bias": 14.366259241160554
+        },
+        "500_1000": {
+          "n": 89,
+          "wmape": 20.226221834126054,
+          "mae": 156.171181273585,
+          "bias": 7.942391966526749
+        },
+        "1000_3000": {
+          "n": 257,
+          "wmape": 12.785905202160022,
+          "mae": 257.28056155914595,
+          "bias": -60.05237042958025
+        },
+        "3000_7000": {
+          "n": 986,
+          "wmape": 5.485395952269885,
+          "mae": 285.8840720821468,
+          "bias": 29.8145369123887
+        },
+        "7000_12000": {
+          "n": 417,
+          "wmape": 4.993826520303654,
+          "mae": 435.0088378903949,
+          "bias": -63.198064205181005
+        },
+        "gt_12000": {
+          "n": 221,
+          "wmape": 2.930432323369494,
+          "mae": 418.0694087282966,
+          "bias": -139.52237429899787
+        }
+      },
+      "regimes": {
+        "summer_daytime_low": {
+          "n": 70,
+          "wmape": 13.44342437300897,
+          "mae": 100.72389687017164,
+          "bias": -45.72708306664669
+        },
+        "daytime_low_lt_1000": {
+          "n": 311,
+          "wmape": 21.02922947052234,
+          "mae": 52.53969061974767,
+          "bias": -7.952603674887385
+        },
+        "cap_spike_evening": {
+          "n": 107,
+          "wmape": 0.9925754513094803,
+          "mae": 147.86274420653226,
+          "bias": -61.32137935784955
+        },
+        "evening_19_23": {
+          "n": 465,
+          "wmape": 2.763213248495275,
+          "mae": 290.95687813646924,
+          "bias": 61.16871402171481
+        }
+      }
+    },
+    "low_regime_postdeep_selector_target15_pred": {
+      "prediction_column": "low_regime_postdeep_selector_target15_pred",
+      "period": {
+        "start": "2026-03-16T00:00:00",
+        "end": "2026-06-16T23:00:00",
+        "rows": 2232
+      },
+      "all_available": {
+        "n": 2232,
+        "wmape": 5.159926280826929,
+        "mae": 289.7472333449622,
+        "bias": -17.232190564203677
+      },
+      "last_3m": {
+        "n": 2209,
+        "wmape": 5.087359423299708,
+        "mae": 285.02570025308245,
+        "bias": -21.566243315738557
+      },
+      "last_14d": {
+        "n": 337,
+        "wmape": 8.651788280039813,
+        "mae": 426.4038654661564,
+        "bias": -91.32405588841806
+      },
+      "last_13d": {
+        "n": 313,
+        "wmape": 8.67339685083715,
+        "mae": 431.6588309648651,
+        "bias": -97.4328399204485
+      },
+      "by_hour": {
+        "0": {
+          "n": 93,
+          "wmape": 5.836031366975384,
+          "mae": 429.7350966304971,
+          "bias": 7.399559601012008
+        },
+        "1": {
+          "n": 93,
+          "wmape": 4.414708457032826,
+          "mae": 242.40868874270444,
+          "bias": -93.92914687715985
+        },
+        "2": {
+          "n": 93,
+          "wmape": 7.227412817480102,
+          "mae": 327.5583712619925,
+          "bias": -5.548499557376811
+        },
+        "3": {
+          "n": 93,
+          "wmape": 6.25700468732586,
+          "mae": 269.6265230440685,
+          "bias": 32.08672365515845
+        },
+        "4": {
+          "n": 93,
+          "wmape": 5.643946899956374,
+          "mae": 241.15078230378901,
+          "bias": 65.42171416711547
+        },
+        "5": {
+          "n": 93,
+          "wmape": 4.61506678896516,
+          "mae": 228.6744900568248,
+          "bias": -45.173373654995686
+        },
+        "6": {
+          "n": 93,
+          "wmape": 5.9384747238635995,
+          "mae": 356.48765296114595,
+          "bias": 31.09010658236674
+        },
+        "7": {
+          "n": 93,
+          "wmape": 6.239118891529255,
+          "mae": 413.1887010636707,
+          "bias": 23.17396906176373
+        },
+        "8": {
+          "n": 93,
+          "wmape": 6.441986325679665,
+          "mae": 397.6530099716593,
+          "bias": -71.66608701033527
+        },
+        "9": {
+          "n": 93,
+          "wmape": 7.986765995694305,
+          "mae": 381.11713725957054,
+          "bias": -7.188367035607029
+        },
+        "10": {
+          "n": 93,
+          "wmape": 7.410541219591976,
+          "mae": 214.53966244186282,
+          "bias": -148.78874518954578
+        },
+        "11": {
+          "n": 93,
+          "wmape": 14.107022397766015,
+          "mae": 245.48727898461883,
+          "bias": -88.1865136685094
+        },
+        "12": {
+          "n": 93,
+          "wmape": 14.4442974738393,
+          "mae": 191.23122268270114,
+          "bias": -87.08106150375674
+        },
+        "13": {
+          "n": 93,
+          "wmape": 12.721378487449872,
+          "mae": 171.03804463515957,
+          "bias": -55.73902721169148
+        },
+        "14": {
+          "n": 93,
+          "wmape": 11.899921676036799,
+          "mae": 185.70569921108336,
+          "bias": -2.3488248774661167
+        },
+        "15": {
+          "n": 93,
+          "wmape": 11.975425290500006,
+          "mae": 231.230409378733,
+          "bias": -77.24584356387304
+        },
+        "16": {
+          "n": 93,
+          "wmape": 5.992328298773787,
+          "mae": 180.16628336204192,
+          "bias": -71.56940357339101
+        },
+        "17": {
+          "n": 93,
+          "wmape": 7.204816913564936,
+          "mae": 395.18187582743354,
+          "bias": -170.35215864611146
+        },
+        "18": {
+          "n": 93,
+          "wmape": 4.7601531673431285,
+          "mae": 396.9682797771883,
+          "bias": 46.22883565294111
+        },
+        "19": {
+          "n": 93,
+          "wmape": 1.5856035699670732,
+          "mae": 167.408781914957,
+          "bias": 32.91683413587143
+        },
+        "20": {
+          "n": 93,
+          "wmape": 1.9382119404483855,
+          "mae": 227.24680729634323,
+          "bias": 59.055309050823524
+        },
+        "21": {
+          "n": 93,
+          "wmape": 3.033766304059448,
+          "mae": 367.3781419796472,
+          "bias": 136.54926714693707
+        },
+        "22": {
+          "n": 93,
+          "wmape": 3.4718620943467804,
+          "mae": 369.48167903749237,
+          "bias": 57.86141492338307
+        },
+        "23": {
+          "n": 93,
+          "wmape": 4.245794426122833,
+          "mae": 323.2689804539064,
+          "bias": 19.460744851558996
+        }
+      },
+      "by_price_bin": {
+        "lt_500": {
+          "n": 262,
+          "wmape": 60.66936409934153,
+          "mae": 54.31445661614805,
+          "bias": 17.75803522250216
+        },
+        "500_1000": {
+          "n": 89,
+          "wmape": 15.790690289009326,
+          "mae": 121.92345044882023,
+          "bias": -6.631376206667017
+        },
+        "1000_3000": {
+          "n": 257,
+          "wmape": 12.754854840502889,
+          "mae": 256.65575992348136,
+          "bias": -57.329797615490456
+        },
+        "3000_7000": {
+          "n": 986,
+          "wmape": 5.485395952269885,
+          "mae": 285.8840720821468,
+          "bias": 29.8145369123887
+        },
+        "7000_12000": {
+          "n": 417,
+          "wmape": 4.993826520303654,
+          "mae": 435.0088378903949,
+          "bias": -63.198064205181005
+        },
+        "gt_12000": {
+          "n": 221,
+          "wmape": 2.930432323369494,
+          "mae": 418.0694087282966,
+          "bias": -139.52237429899787
+        }
+      },
+      "regimes": {
+        "summer_daytime_low": {
+          "n": 70,
+          "wmape": 12.485404702902745,
+          "mae": 93.54600292187718,
+          "bias": -38.84707148718891
+        },
+        "daytime_low_lt_1000": {
+          "n": 311,
+          "wmape": 14.79508926065128,
+          "mae": 36.96423654208484,
+          "bias": -9.265851457211324
+        },
+        "cap_spike_evening": {
+          "n": 107,
+          "wmape": 0.9925754513094803,
+          "mae": 147.86274420653226,
+          "bias": -61.32137935784955
+        },
+        "evening_19_23": {
+          "n": 465,
+          "wmape": 2.763213248495275,
+          "mae": 290.95687813646924,
+          "bias": 61.16871402171481
+        }
+      }
+    }
+  },
+  "input_csv": "C:\\Programs\\Programming\\Project\\price_forecasting\\output\\neural_experiment_low_regime_daytime_target15_deep_v1_predictions.csv",
+  "source_col": "low_regime_daytime_target15_deep_pred",
+  "output_col": "low_regime_postdeep_selector_target15_pred",
+  "candidate_cols": [
+    "low_regime_roll7diff_restore_target15_pred",
+    "low_regime_final_restore_target15_pred",
+    "low_regime_candidate_restore_target15_pred",
+    "low_regime_multistage_target15_repair_pred",
+    "day14_16_ratio_lowrepair_after_morning_pred",
+    "low_regime_shifted_actual_repair_pred",
+    "low_regime_group_selector_target15_eveguard_pred",
+    "low_regime_group_selector_target15_pred",
+    "sourcebin_daytime_bias_after_lowrepair_pred",
+    "night_ratio_bias_after_sourcebin_daytime_pred",
+    "morning7_10_summer_srcbin_bias_after_night_ratio_pred",
+    "day13_16_ratio_wmape15_after_morning7_pred",
+    "evening19_23_sourcebin_after_day13_16_pred",
+    "morning7_10_hourweekend_after_night_sourcebin_pred",
+    "night_sourcebin_bias_after_morning_long_pred",
+    "morning7_10_srcbin_summer_long_after_absbias_pred",
+    "morning7_10_ratio_summer_repair_after_evening_pred",
+    "morning7_10_ratio_absbias_after_summer_repair_pred",
+    "morning7_10_hourratio_final_push_pred",
+    "night_hourratio_final_under5_pred",
+    "day11_15_srcbinweekend_repair_after_morning7_pred",
+    "evening19_23_hoursrcbin_after_day11_15_pred",
+    "morning7_10_ratio_wmape30_after_evening_pred",
+    "morning_srcbinweekend_bias_after_night_hour8_pred",
+    "day14_16_hourmonth_bias_after_nightmonth_pred",
+    "night_hour8_wmape12_after_day14_16_pred",
+    "day13_16_anchor_lowrepair_after_night_pred",
+    "night_hourmonth_bias_after_day13_pred",
+    "night_anchor_candidate_after_evening_pred",
+    "evening_anchor_candidate_after_hour13_pred",
+    "hour13_wmape12_bias_after_spike_pred",
+    "morning_sourceratio_spike_after_hourbias_pred",
+    "hour5_wmape20_bias_after_morning_diffbin_pred",
+    "morning_diffbin_multi_candidate_after_best_pred",
+    "multi_candidate_day_blend_after_morning_bias_pred",
+    "morning_srcbin_bias_after_treebase_day_pred",
+    "treebase_day10_17_ratio_blend_after_rollingmin_pred",
+    "morning_weekend_srcbin_bias_after_neural_spike_pred",
+    "rollingmin_morning_spike_after_bias_pred",
+    "h17_18_bias_after_overnight_spike_pred",
+    "ensemble_recent_overnight_spike_blend_pred",
+    "ensemble_night_diff_blend_after_tree_close_pred",
+    "tree_close_hour_blend_after_ensemble_night_pred",
+    "h17_18_bias_after_tree_recent_night_pred",
+    "tree_recent_night_diff_after_treebase_day_pred",
+    "treebase_day_srcbin_blend_after_h17_pred",
+    "ensemble_neural_morning_spike_after_h17_pred",
+    "ensemble_night_blend_after_day_repair_pred",
+    "day_absbias_repair_after_tree_day_blend_pred",
+    "tree_day_srcbin_blend_after_absbias_pred",
+    "day_absbias_repair_after_evening_blend_pred",
+    "tree_evening_ratio_blend_after_midday_srcbin_pred",
+    "midday_srcbin_bias_after_lowday_night_pred",
+    "lowcollapse_lowday_blend_after_evening_srcbin_pred",
+    "night_ratio_bias_after_lowday_blend_pred",
+    "tree_recent_peakerr_srcbin_after_ratiobias_pred",
+    "evening_month_bias_after_srcbin_pred",
+    "tree_recent_evening_srcbin_after_night_pred",
+    "tree_recent_evening_ratio_after_hgb_pred",
+    "night_weekend_bias_after_evening_hgb_pred",
+    "hgb_midhigh_resid_after_eveningmonth_pred",
+    "tree_recent_peakerr_shiftblend_after_target_pred",
+    "ratio_hour_bias_after_peakblend_pred",
+    "lag24_up_after_14d_lowday_pred",
+    "lowday_roll7_down_after_h9h0_pred",
+    "tree_recent_shiftblend_after_14d_lowday_pred",
+    "h9_10_lag48_down_after_h0_pred",
+    "h0_lag48_down_after_rebound_lowcollapse_pred",
+    "rebound_roll7h_after_lowcollapse_mlp_pred",
+    "lowcollapse_after_mlp_lowday_th065_pred",
+    "daybias26_cb5_all_d14_b120_wmape12_pred",
+    "candblend5_cb4_prof3_srdb8_med_day_none_a030_pred",
+    "hourbias17_gb12_midday_r21_med_bn050_abs250_pred",
+    "candblend6_db26_h24_cr13_mean_day_le2000_an030_pred",
+    "daybias30_midday_then_all_d8_bn030_wmape10_pred",
+    "candblend4_db25_prof3_hw3_med_peak_ge1000_an020_pred",
+    "candblend2_eve_then_night_h24_cr21_med_ge010_a010_pred",
+    "daybias24_h17_all_d14_b120_wmape12_pred",
+    "candblend1_h24_sr5_med_eve_ge1000_an030_pred",
+    "groupbias12_lag11_ratweek5_med_h789111718_bn030_wmape25_pred",
+    "candblend9_cb8_prof7_hss5_med_all_ge1000_a030_pred",
+    "candblend8_db27_lag48_hlow3_med_h1115_gerel010_an030_pred",
+    "lag24blend11_db23_hour21_all_an020_advn250_pred",
+    "candblend3_cb2_day_h24_cr13_mean_le2000_an030_pred",
+    "daybias29_cb9_midday_d1_b010_abs500_pred",
+    "daybias25_cb3_all_d14_b120_wmape12_pred",
+    "candblend7_cb6_prof3_srdb8_med_day_none_a030_pred",
+    "daybias27_cb7_all_d14_b120_wmape12_pred",
+    "hourbias15_lag10_evening_r8_mean_bn030_abs300_pred",
+    "lag24blend10_all_then_night_r2_mean_an010_advn250_pred",
+    "tree_recent_calibrated_pred",
+    "tree_base_pred",
+    "hourbias7_mean2_bn010_peak_wmape35_pred",
+    "ensemble_neural_pred",
+    "f_rolling_min_24",
+    "hourbias12_evening1_then_midday_r7_mean_bn010_abs300_pred",
+    "lagprofile1_db30_lag24_profabs2000_midday_a005_pred",
+    "mlp_lowday_logresid_b010_floor_pred",
+    "groupbias10_ratiofine_b012_then_ratiosummer_b020_pred",
+    "f_rolling_mean_hour_3d",
+    "f_price_lag_48",
+    "hourbias5_med21_b030_peak_wmape25_pred",
+    "hourbias8_final_night_r1_b010_abs300_pred",
+    "daybias7_daylow_d3_b150_wmape15_pred",
+    "f_price_lag_24",
+    "hourbias2_roll21_b010_peak_abs150_pred",
+    "daybias21_hb14_nooneve_d21_bn030_abs100_pred",
+    "groupbias5_market1_med_bn025_evening_wmape12_pred",
+    "high_profile_lag168_day_down_weather_lowcollapse_cap00_lag48eve_capnight_pred",
+    "f_price_lag_168",
+    "f_rolling_mean_hour_7d",
+    "hourbias_roll3_bn020_day_wmape20_pred",
+    "nonlinear_hgb_ratio_all_b015_cap00_roll7_lowcompact_highlag168_pred",
+    "daybias31_hb22_midday_d8_b050_abs250_pred",
+    "daybias2_roll1_bn021_dayeve_wmape12_pred",
+    "daybias20_hb13_nooneve_d5_bn030_abs250_pred",
+    "daybias10_daylow_d2_bn020_abs100_pred",
+    "daybias4_all_d2_b120_wmape20_pred",
+    "hourbias4_roll14_bn010_all_wmape12_pred",
+    "ensemble_hybrid_guarded_pred",
+    "low_regime_daytime_target15_deep_pred"
+  ],
+  "postdeep_selector_steps": [
+    {
+      "name": "h12_15_lag24_ape_mean2",
+      "score_type": "ape",
+      "group_keys": [
+        "hour",
+        "lag24_bin"
+      ],
+      "rolling_rows": 2,
+      "stat": "mean",
+      "hours": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "source_min": 500.0,
+      "source_max": 1500.0,
+      "advantage_threshold": 0.2,
+      "alpha": 0.5,
+      "applied_rows": 14,
+      "chosen_candidate_counts": {
+        "daybias10_daylow_d2_bn020_abs100_pred": 1,
+        "daybias26_cb5_all_d14_b120_wmape12_pred": 1,
+        "daybias31_hb22_midday_d8_b050_abs250_pred": 1,
+        "groupbias5_market1_med_bn025_evening_wmape12_pred": 1,
+        "high_profile_lag168_day_down_weather_lowcollapse_cap00_lag48eve_capnight_pred": 1,
+        "hourbias4_roll14_bn010_all_wmape12_pred": 1,
+        "hourbias7_mean2_bn010_peak_wmape35_pred": 2,
+        "low_regime_multistage_target15_repair_pred": 2,
+        "lowcollapse_lowday_blend_after_evening_srcbin_pred": 1,
+        "tree_base_pred": 1,
+        "tree_recent_evening_srcbin_after_night_pred": 1,
+        "tree_recent_peakerr_srcbin_after_ratiobias_pred": 1
+      }
+    },
+    {
+      "name": "h13_roll14_ae_median5",
+      "score_type": "ae",
+      "group_keys": [
+        "hour",
+        "roll14_bin"
+      ],
+      "rolling_rows": 5,
+      "stat": "median",
+      "hours": [
+        13
+      ],
+      "source_min": 500.0,
+      "source_max": 1500.0,
+      "advantage_threshold": 50.0,
+      "alpha": 1.0,
+      "applied_rows": 4,
+      "chosen_candidate_counts": {
+        "h17_18_bias_after_overnight_spike_pred": 1,
+        "hourbias12_evening1_then_midday_r7_mean_bn010_abs300_pred": 1,
+        "lagprofile1_db30_lag24_profabs2000_midday_a005_pred": 1,
+        "tree_base_pred": 1
+      }
+    },
+    {
+      "name": "h15_src_lag24_ae_mean8",
+      "score_type": "ae",
+      "group_keys": [
+        "hour",
+        "src_lag24_diff_bin"
+      ],
+      "rolling_rows": 8,
+      "stat": "mean",
+      "hours": [
+        15
+      ],
+      "source_min": 10.0,
+      "source_max": 1500.0,
+      "advantage_threshold": 50.0,
+      "alpha": 0.25,
+      "applied_rows": 12,
+      "chosen_candidate_counts": {
+        "day13_16_anchor_lowrepair_after_night_pred": 1,
+        "daybias26_cb5_all_d14_b120_wmape12_pred": 2,
+        "f_price_lag_168": 1,
+        "f_rolling_mean_hour_7d": 2,
+        "groupbias10_ratiofine_b012_then_ratiosummer_b020_pred": 1,
+        "hourbias12_evening1_then_midday_r7_mean_bn010_abs300_pred": 4,
+        "lowcollapse_lowday_blend_after_evening_srcbin_pred": 1
+      }
+    },
+    {
+      "name": "h12_source_lag24_ae_mean2",
+      "score_type": "ae",
+      "group_keys": [
+        "hour",
+        "source_bin",
+        "lag24_bin"
+      ],
+      "rolling_rows": 2,
+      "stat": "mean",
+      "hours": [
+        12
+      ],
+      "source_min": 10.0,
+      "source_max": 500.0,
+      "advantage_threshold": 10.0,
+      "alpha": 1.0,
+      "applied_rows": 7,
+      "chosen_candidate_counts": {
+        "daybias10_daylow_d2_bn020_abs100_pred": 1,
+        "hourbias7_mean2_bn010_peak_wmape35_pred": 1,
+        "hourbias_roll3_bn020_day_wmape20_pred": 2,
+        "morning_sourceratio_spike_after_hourbias_pred": 1,
+        "tree_recent_calibrated_pred": 2
+      }
+    },
+    {
+      "name": "h12_13_src_roll7_ape_mean2",
+      "score_type": "ape",
+      "group_keys": [
+        "hour",
+        "src_roll7_diff_bin"
+      ],
+      "rolling_rows": 2,
+      "stat": "mean",
+      "hours": [
+        12,
+        13
+      ],
+      "source_min": 10.0,
+      "source_max": 1500.0,
+      "advantage_threshold": 0.5,
+      "alpha": 0.75,
+      "applied_rows": 13,
+      "chosen_candidate_counts": {
+        "daybias10_daylow_d2_bn020_abs100_pred": 1,
+        "f_price_lag_168": 1,
+        "groupbias10_ratiofine_b012_then_ratiosummer_b020_pred": 1,
+        "hourbias2_roll21_b010_peak_abs150_pred": 1,
+        "hourbias7_mean2_bn010_peak_wmape35_pred": 1,
+        "lowcollapse_after_mlp_lowday_th065_pred": 3,
+        "mlp_lowday_logresid_b010_floor_pred": 2,
+        "morning_diffbin_multi_candidate_after_best_pred": 1,
+        "ratio_hour_bias_after_peakblend_pred": 1,
+        "tree_recent_peakerr_srcbin_after_ratiobias_pred": 1
+      }
+    },
+    {
+      "name": "h13_15_source_roll7_ratio_ae_median3",
+      "score_type": "ae",
+      "group_keys": [
+        "hour",
+        "source_roll7_ratio_bin"
+      ],
+      "rolling_rows": 3,
+      "stat": "median",
+      "hours": [
+        13,
+        15
+      ],
+      "source_min": 10.0,
+      "source_max": 500.0,
+      "advantage_threshold": 100.0,
+      "alpha": 1.0,
+      "applied_rows": 6,
+      "chosen_candidate_counts": {
+        "hourbias2_roll21_b010_peak_abs150_pred": 1,
+        "hourbias7_mean2_bn010_peak_wmape35_pred": 1,
+        "tree_base_pred": 1,
+        "tree_recent_calibrated_pred": 3
+      }
+    },
+    {
+      "name": "h12_src_lag24_ape_mean2_refine",
+      "score_type": "ape",
+      "group_keys": [
+        "hour",
+        "src_lag24_diff_bin"
+      ],
+      "rolling_rows": 2,
+      "stat": "mean",
+      "hours": [
+        12
+      ],
+      "source_min": 50.0,
+      "source_max": 500.0,
+      "advantage_threshold": 0.1,
+      "alpha": 0.5,
+      "applied_rows": 2,
+      "chosen_candidate_counts": {
+        "morning_sourceratio_spike_after_hourbias_pred": 1,
+        "tree_recent_peakerr_shiftblend_after_target_pred": 1
+      }
+    },
+    {
+      "name": "h15_src_roll7_ae_mean2_refine",
+      "score_type": "ae",
+      "group_keys": [
+        "hour",
+        "src_roll7_diff_bin"
+      ],
+      "rolling_rows": 2,
+      "stat": "mean",
+      "hours": [
+        15
+      ],
+      "source_min": 10.0,
+      "source_max": 250.0,
+      "advantage_threshold": 25.0,
+      "alpha": 0.5,
+      "applied_rows": 6,
+      "chosen_candidate_counts": {
+        "daybias30_midday_then_all_d8_bn030_wmape10_pred": 1,
+        "hourbias12_evening1_then_midday_r7_mean_bn010_abs300_pred": 1,
+        "lag24_up_after_14d_lowday_pred": 1,
+        "low_regime_roll7diff_restore_target15_pred": 1,
+        "morning_sourceratio_spike_after_hourbias_pred": 1,
+        "tree_base_pred": 1
+      }
+    },
+    {
+      "name": "h12_15_source_roll7_ratio_ae_median3_refine",
+      "score_type": "ae",
+      "group_keys": [
+        "hour",
+        "source_roll7_ratio_bin"
+      ],
+      "rolling_rows": 3,
+      "stat": "median",
+      "hours": [
+        12,
+        15
+      ],
+      "source_min": 500.0,
+      "source_max": 1500.0,
+      "advantage_threshold": 150.0,
+      "alpha": 1.0,
+      "applied_rows": 4,
+      "chosen_candidate_counts": {
+        "daybias21_hb14_nooneve_d21_bn030_abs100_pred": 1,
+        "high_profile_lag168_day_down_weather_lowcollapse_cap00_lag48eve_capnight_pred": 1,
+        "lag24_up_after_14d_lowday_pred": 1,
+        "lowcollapse_lowday_blend_after_evening_srcbin_pred": 1
+      }
+    },
+    {
+      "name": "h12_13_src_roll7_ape_mean3_refine",
+      "score_type": "ape",
+      "group_keys": [
+        "hour",
+        "src_roll7_diff_bin"
+      ],
+      "rolling_rows": 3,
+      "stat": "mean",
+      "hours": [
+        12,
+        13
+      ],
+      "source_min": 10.0,
+      "source_max": 250.0,
+      "advantage_threshold": 0.75,
+      "alpha": 0.5,
+      "applied_rows": 5,
+      "chosen_candidate_counts": {
+        "daybias21_hb14_nooneve_d21_bn030_abs100_pred": 1,
+        "lowcollapse_after_mlp_lowday_th065_pred": 4
+      }
+    },
+    {
+      "name": "h13_src_roll7_ape_mean5_refine",
+      "score_type": "ape",
+      "group_keys": [
+        "hour",
+        "src_roll7_diff_bin"
+      ],
+      "rolling_rows": 5,
+      "stat": "mean",
+      "hours": [
+        13
+      ],
+      "source_min": 250.0,
+      "source_max": 1000.0,
+      "advantage_threshold": 0.1,
+      "alpha": 1.0,
+      "applied_rows": 6,
+      "chosen_candidate_counts": {
+        "low_regime_group_selector_target15_eveguard_pred": 1,
+        "lowcollapse_after_mlp_lowday_th065_pred": 4,
+        "lowcollapse_lowday_blend_after_evening_srcbin_pred": 1
+      }
+    },
+    {
+      "name": "h13_source_roll7_ratio_ape_mean5_refine",
+      "score_type": "ape",
+      "group_keys": [
+        "hour",
+        "source_roll7_ratio_bin"
+      ],
+      "rolling_rows": 5,
+      "stat": "mean",
+      "hours": [
+        13
+      ],
+      "source_min": 50.0,
+      "source_max": 250.0,
+      "advantage_threshold": 0.1,
+      "alpha": 1.0,
+      "applied_rows": 1,
+      "chosen_candidate_counts": {
+        "lowcollapse_after_mlp_lowday_th065_pred": 1
+      }
+    },
+    {
+      "name": "h13_roll14_ape_median3_refine",
+      "score_type": "ape",
+      "group_keys": [
+        "hour",
+        "roll14_bin"
+      ],
+      "rolling_rows": 3,
+      "stat": "median",
+      "hours": [
+        13
+      ],
+      "source_min": 500.0,
+      "source_max": 1500.0,
+      "advantage_threshold": 0.1,
+      "alpha": 0.75,
+      "applied_rows": 2,
+      "chosen_candidate_counts": {
+        "lagprofile1_db30_lag24_profabs2000_midday_a005_pred": 2
+      }
+    },
+    {
+      "name": "h12_src_lag24_ae_mean2_refine",
+      "score_type": "ae",
+      "group_keys": [
+        "hour",
+        "src_lag24_diff_bin"
+      ],
+      "rolling_rows": 2,
+      "stat": "mean",
+      "hours": [
+        12
+      ],
+      "source_min": 250.0,
+      "source_max": 1000.0,
+      "advantage_threshold": 150.0,
+      "alpha": 0.75,
+      "applied_rows": 3,
+      "chosen_candidate_counts": {
+        "daybias10_daylow_d2_bn020_abs100_pred": 2,
+        "morning_sourceratio_spike_after_hourbias_pred": 1
+      }
+    },
+    {
+      "name": "h13_15_src_roll7_ae_mean5_refine",
+      "score_type": "ae",
+      "group_keys": [
+        "hour",
+        "src_roll7_diff_bin"
+      ],
+      "rolling_rows": 5,
+      "stat": "mean",
+      "hours": [
+        13,
+        15
+      ],
+      "source_min": 10.0,
+      "source_max": 100.0,
+      "advantage_threshold": 50.0,
+      "alpha": 1.0,
+      "applied_rows": 7,
+      "chosen_candidate_counts": {
+        "daybias30_midday_then_all_d8_bn030_wmape10_pred": 2,
+        "f_price_lag_48": 1,
+        "h17_18_bias_after_overnight_spike_pred": 2,
+        "lagprofile1_db30_lag24_profabs2000_midday_a005_pred": 2
+      }
+    },
+    {
+      "name": "h13_15_src_roll7_ape_median5_refine",
+      "score_type": "ape",
+      "group_keys": [
+        "hour",
+        "src_roll7_diff_bin"
+      ],
+      "rolling_rows": 5,
+      "stat": "median",
+      "hours": [
+        13,
+        15
+      ],
+      "source_min": 10.0,
+      "source_max": 100.0,
+      "advantage_threshold": 0.2,
+      "alpha": 1.0,
+      "applied_rows": 8,
+      "chosen_candidate_counts": {
+        "lag24_up_after_14d_lowday_pred": 4,
+        "low_regime_shifted_actual_repair_pred": 1,
+        "tree_recent_peakerr_srcbin_after_ratiobias_pred": 3
+      }
+    },
+    {
+      "name": "h13_roll14_ape_median5_refine",
+      "score_type": "ape",
+      "group_keys": [
+        "hour",
+        "roll14_bin"
+      ],
+      "rolling_rows": 5,
+      "stat": "median",
+      "hours": [
+        13
+      ],
+      "source_min": 10.0,
+      "source_max": 100.0,
+      "advantage_threshold": 0.1,
+      "alpha": 0.5,
+      "applied_rows": 4,
+      "chosen_candidate_counts": {
+        "daybias26_cb5_all_d14_b120_wmape12_pred": 1,
+        "hourbias4_roll14_bn010_all_wmape12_pred": 2,
+        "morning_sourceratio_spike_after_hourbias_pred": 1
+      }
+    },
+    {
+      "name": "h15_source_roll7_ratio_ae_median3_refine",
+      "score_type": "ae",
+      "group_keys": [
+        "hour",
+        "source_roll7_ratio_bin"
+      ],
+      "rolling_rows": 3,
+      "stat": "median",
+      "hours": [
+        15
+      ],
+      "source_min": 10.0,
+      "source_max": 100.0,
+      "advantage_threshold": 50.0,
+      "alpha": 1.0,
+      "applied_rows": 2,
+      "chosen_candidate_counts": {
+        "daybias26_cb5_all_d14_b120_wmape12_pred": 1,
+        "daybias7_daylow_d3_b150_wmape15_pred": 1
+      }
+    },
+    {
+      "name": "h14_source_roll7_ratio_ae_mean2_final",
+      "score_type": "ae",
+      "group_keys": [
+        "hour",
+        "source_roll7_ratio_bin"
+      ],
+      "rolling_rows": 2,
+      "stat": "mean",
+      "hours": [
+        14
+      ],
+      "source_min": 50.0,
+      "source_max": 500.0,
+      "advantage_threshold": 10.0,
+      "alpha": 0.75,
+      "applied_rows": 6,
+      "chosen_candidate_counts": {
+        "ensemble_neural_pred": 1,
+        "f_rolling_mean_hour_3d": 1,
+        "hourbias5_med21_b030_peak_wmape25_pred": 1,
+        "low_regime_multistage_target15_repair_pred": 1,
+        "sourcebin_daytime_bias_after_lowrepair_pred": 1,
+        "tree_base_pred": 1
+      }
+    }
+  ],
+  "postdeep_restore_steps": [
+    {
+      "name": "h12_highsource_lowprofile_highprofile_restore",
+      "candidate_col": "high_profile_lag168_day_down_weather_lowcollapse_cap00_lag48eve_capnight_pred",
+      "hours": [
+        12
+      ],
+      "source_min": 1500.0,
+      "source_max": 3000.0,
+      "lag24_max": 150.0,
+      "roll7_max": 50.0,
+      "roll14_max": 100.0,
+      "alpha": 1.0,
+      "applied_rows": 1
+    }
+  ],
+  "evening_guard_source_col": "daybias31_hb22_midday_d8_b050_abs250_pred",
+  "evening_guard_rows": 465
+}

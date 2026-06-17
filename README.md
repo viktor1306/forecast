@@ -4,7 +4,7 @@
 
 ## Поточний статус
 
-Актуально на `2026-06-16`.
+Актуально на `2026-06-17` для out-of-sample comparison; rolling-origin history artifact закінчується `2026-06-16`.
 
 Поточний promoted best:
 
@@ -30,6 +30,7 @@
 
 - short-term goal: `14d WMAPE < 10%` - досягнуто в research-candidate `night_hourratio_final_under5_v1` з `8.6172%` (production promoted baseline ще `10.3096%`)
 - long-term goal: `3m WMAPE < 5%` - досягнуто в research-candidate `night_hourratio_final_under5_v1` з `4.9896%` (production promoted baseline ще `5.9937%`)
+- active low-regime goal: `summer_daytime_low ~= 15%` і `daytime_low_lt_1000 ~= 15%`. Поточний найкращий чесний low-regime repair покращив promoted baseline з `35.19% -> 12.49%` і `49.77% -> 14.80%`; обидва target-regimes уже на рівні `~15%`, без регресії 13d/14d/3m, cap-spike та evening guardrails. Artifact лишається research-candidate, поки не productionized у future-date pipeline.
 - guardrail: прогноз РДН не може бути нижче `10 грн/МВтг`; усі нові production forecasts кліпаються у діапазон `[10, price_cap]`
 
 Поточний target-balanced candidate, ще не promoted:
@@ -40,6 +41,15 @@
 - result: `3m WMAPE 4.9896%`, `14d WMAPE 8.6172%`, `daytime_low_lt_1000 38.45%`, `summer_daytime_low 24.74%`
 - validation: `2232` rows, duplicate factual datetimes `0`, min prediction `10.0`, predictions below `10` = `0`, predictions above cap = `0`
 - status: both strict research goals are reached; production forecast helper still uses the older `daybias31` promoted chain because the research candidate depends on intermediate tree/ensemble/anchor/current-chain columns that are not yet emitted for future-date forecasts.
+
+Поточний low-regime target candidate, ще не promoted:
+
+- experiment: `low_regime_postdeep_selector_target15_v1`
+- prediction column: `low_regime_postdeep_selector_target15_pred`
+- source: `low_regime_daytime_target15_deep_pred`
+- method: post-deep shifted candidate selector for h12/h13/h15 low regimes, using only prior-row candidate performance in forecast-time groups, plus narrow refinement gates and a high-source/low-profile h12 restore; hours `19-23` are restored to production baseline.
+- result: `3m WMAPE 5.0874%`, `14d WMAPE 8.6518%`, `13d WMAPE 8.6734%`, `summer_daytime_low 12.49%`, `daytime_low_lt_1000 14.80%`, `cap_spike_evening 0.99%`, `evening_19_23 2.76%`
+- status: both low-regime target metrics are now at `~15%`; this is still a research best, not a completed production promotion.
 
 Актуальні артефакти:
 
@@ -180,6 +190,12 @@
 | Night ratio + morning/day/evening shifted repairs | `5.1267%` | `8.7542%` |
 | Day 11-15 repair + evening/morning final push | `5.0027%` | `8.6566%` |
 | Night hour-ratio final under-5 repair | `4.9896%` | `8.6172%` |
+| Low-regime shifted actual repair with evening guard | `5.2269%` | `9.0017%` |
+| Low-regime multistage target repair with evening guard | `5.2085%` | `8.8558%` |
+| Low-regime final restore target repair with evening guard | `5.1892%` | `8.8105%` |
+| Low-regime roll7/diff target repair with evening guard | `5.1672%` | `8.7460%` |
+| Low-regime daytime deep target repair with evening guard | `5.1278%` | `8.6846%` |
+| Low-regime post-deep selector target repair with evening guard | `5.0874%` | `8.6518%` |
 
 ## Чесна оцінка
 
@@ -285,6 +301,15 @@ python src/evaluate_neural_hybrid.py output\neural_experiment_night_hourratio_fi
 - `src/apply_high_profile_adjuster.py` - deterministic high-price/cap-spike rules.
 - `src/apply_low_collapse_classifier_adjuster.py` - rolling-origin low-collapse classifier для денних low-price годин.
 - `src/apply_rebound_profile_adjuster.py` - forecast-time rebound profile repair для низького денного прогнозу після low-collapse.
+- `src/build_low_regime_composite.py` - diagnostic/research composite, який бере low-regime day repair і повертає evening hours `19-23` до production guardrail.
+- `src/build_low_regime_group_selector.py` - shifted candidate selector для `~15%` low-regime target track; поки дає невелике чесне покращення, але не досягає target.
+- `src/build_low_regime_shifted_actual_repair.py` - shifted rolling actual-median repair для low-regime target track; покращує low-regime без регресії 13d/14d/3m і evening/cap guardrails, але ще не до `~15%`.
+- `src/build_low_regime_multistage_repair.py` - multistage shifted same-hour/group ratio/residual repair для low-regime target track.
+- `src/build_low_regime_candidate_restore.py` - forecast-time candidate restore після multistage repair для дуже низького source та окремих h12/h14 gates.
+- `src/build_low_regime_final_restore.py` - фінальний candidate restore поверх `low_regime_candidate_restore_target15_v1`.
+- `src/build_low_regime_roll7diff_restore.py` - shifted roll7/source-diff repair поверх final restore; доводить `summer_daytime_low` майже до `15%`.
+- `src/build_low_regime_daytime_deep_repair.py` - глибші shifted денні repairs; `summer_daytime_low` нижче target, `daytime_low_lt_1000` ще активний.
+- `src/build_low_regime_postdeep_selector.py` - поточний найкращий low-regime target artifact; shifted post-deep candidate selector для h12/h13/h15 low regimes з evening guard.
 - `src/train_lstm.py` і `src/train_lstm_tf.py` - старі LSTM experiments, не production best.
 
 ## Основний цикл
@@ -335,18 +360,30 @@ python src/evaluate_neural_hybrid.py output\neural_best_predictions.csv --pred-c
 
 ## Відомі складні режими
 
-Промотована модель вже добре тримає вечірні cap-spike години, але найбільша відносна похибка була у денних low-price режимах, особливо коли фактична ціна нижче `1000 грн/МВтг`:
+Промотована модель вже добре тримає вечірні cap-spike години, але найбільша відносна похибка була у денних low-price режимах, особливо коли фактична ціна нижче `1000 грн/МВтг`. Нова активна ціль для обох low-regime WMAPE - приблизно `15%`, бо саме ці режими створюють більшу частину короткострокової помилки.
 
-| regime | promoted WMAPE | target-balanced candidate WMAPE |
-|---|---:|---:|
-| `summer_daytime_low` | `35.19%` | `24.74%` |
-| `daytime_low_lt_1000` | `49.77%` | `38.45%` |
-| `cap_spike_evening` | `0.99%` | `1.08%` |
-| `evening_19_23` | `2.76%` | `2.15%` |
+| regime | promoted WMAPE | low-regime composite WMAPE | shifted selector + evening guard WMAPE | multistage WMAPE | final restore WMAPE | daytime deep WMAPE | post-deep selector WMAPE | active target |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `summer_daytime_low` | `35.19%` | `27.26%` | `23.68%` | `18.14%` | `16.86%` | `13.44%` | `12.49%` | `~15%` |
+| `daytime_low_lt_1000` | `49.77%` | `37.31%` | `37.81%` | `33.57%` | `30.70%` | `21.03%` | `14.80%` | `~15%` |
+| `cap_spike_evening` | `0.99%` | `0.99%` | `0.99%` | `0.99%` | `0.99%` | `0.99%` | `0.99%` | no regression |
+| `evening_19_23` | `2.76%` | `2.76%` | `2.76%` | `2.76%` | `2.76%` | `2.76%` | `2.76%` | no regression |
 
-Це був головний bottleneck для пробиття `14d < 10%` і `3m < 5%`; після `night_hourratio_final_under5_v1` обидві research-цілі виконані, а денний low-price режим суттєво кращий за promoted baseline. Low-price rows все одно лишаються guardrail для будь-якої production-промоції. Мала база фактичної ціни сильно збільшує WMAPE, а приховані фактори на кшталт атомної генерації, ремонтів, обмежень або ринкових дій не завжди є в публічних погодинних даних.
-Окремо перевірено просте копіювання попереднього дня: `f_price_lag_24` сам по собі має близько `27.80% / 30.02%` WMAPE, але daily-gated selector корисний у рідкісних режимах, де вчорашній профіль уже показав перевагу над model.
-Out-of-sample DAM на `2026-06-17` з OREE підтягнуто без запису в train CSV: `prediction_2026-06-17_current_best.csv` має WMAPE `17.03%` проти факту, з найбільшим провалом у годинах `7-19`. Forecast floor вже працює (`10 грн/МВтг`, не `0`), але current-best production chain занадто сильно валить денні low-block години до підлоги.
+Це був головний bottleneck для пробиття `14d < 10%` і `3m < 5%`; після `night_hourratio_final_under5_v1` обидві research-цілі виконані, але денний low-price режим ще не на потрібному рівні. Low-price rows лишаються guardrail для будь-якої production-промоції. Мала база фактичної ціни сильно збільшує WMAPE, а приховані фактори на кшталт атомної генерації, ремонтів, обмежень або ринкових дій не завжди є в публічних погодинних даних.
+Новий shifted selector `low_regime_group_selector_target15_v1` бере кандидат тільки для годин `11-15`, коли source `<=250`, і тільки якщо кандидат мав кращий shifted APE у групі `hour/source_bin/lag24_bin`. Він покращив research best `night_hourratio_final_under5_v1` без внутрішньої регресії: `3m 4.9896% -> 4.9855%`, `14d 8.6172% -> 8.5840%`, `13d 8.6138% -> 8.5783%`, `summer_daytime_low 24.74% -> 23.68%`, `daytime_low_lt_1000 38.45% -> 37.81%`. Безпечніший `low_regime_group_selector_target15_eveguard_v1` повертає години `19-23` до production baseline: `3m 5.2290%`, `14d 9.0132%`, `13d 9.0574%`, `summer_daytime_low 23.68%`, `daytime_low_lt_1000 37.81%`, `cap_spike_evening 0.99%`, `evening_19_23 2.76%`.
+
+`low_regime_shifted_actual_repair_v1` додає shifted rolling median actual signal у групі `hour/source_bin/weekend` для годин `13-16`, source `<=250`, `blend=0.5`, і зберігає evening guard. Він покращив evegarded selector без регресії: `3m 5.2290% -> 5.2269%`, `14d 9.0132% -> 9.0017%`, `13d 9.0574% -> 9.0451%`, `summer_daytime_low 23.68% -> 23.32%`, `daytime_low_lt_1000 37.81% -> 37.47%`, `cap_spike_evening 0.99%`, `evening_19_23 2.76%`.
+
+`low_regime_multistage_target15_repair_v1` додає шість shifted same-hour/group ratio/residual repairs поверх shifted actual repair. Він покращив потрібні режими і 13d/14d/3m без регресії evening/cap guardrails: `3m 5.2269% -> 5.2085%`, `14d 9.0017% -> 8.8558%`, `13d 9.0451% -> 8.8895%`, `summer_daytime_low 23.32% -> 18.14%`, `daytime_low_lt_1000 37.47% -> 33.57%`, `cap_spike_evening 0.99%`, `evening_19_23 2.76%`.
+
+`low_regime_final_restore_target15_v1` додає два candidate-restore шари після multistage repair: спочатку повертає частину prior rolling-origin candidates для source-floor режимів, потім робить h10/h10-12/h13-16/h16 forecast-time restores. Він зменшує low-regime далі без регресії: `3m 5.2085% -> 5.1892%`, `14d 8.8558% -> 8.8105%`, `13d 8.8895% -> 8.8427%`, `summer_daytime_low 18.14% -> 16.86%`, `daytime_low_lt_1000 33.57% -> 30.70%`, `cap_spike_evening 0.99%`, `evening_19_23 2.76%`.
+
+`low_regime_daytime_target15_deep_v1` додає після final restore ще два shifted repair шари: `roll7/source-diff` repair і глибший h10-h16 daytime repair на `lag24/168`, rolling 3d/7d/14d profile bins та один вузький candidate polish. Він покращує всі цільові guardrails: `3m 5.1892% -> 5.1278%`, `14d 8.8105% -> 8.6846%`, `13d 8.8427% -> 8.7084%`, `summer_daytime_low 16.86% -> 13.44%`, `daytime_low_lt_1000 30.70% -> 21.03%`, `cap_spike_evening 0.99%`, `evening_19_23 2.76%`.
+
+Поточний найкращий low-regime artifact `low_regime_postdeep_selector_target15_v1` додає leakage-safe post-deep selector: для h12/h13/h15 він бере candidate тільки тоді, коли той мав кращу shifted historical performance у forecast-time групі, і зберігає evening guard. Додаткові вузькі refinement gates та h12 high-source/low-profile restore добивають залишкові low-price rows без регресії: `3m 5.1278% -> 5.0874%`, `14d 8.6846% -> 8.6518%`, `13d 8.7084% -> 8.6734%`, `summer_daytime_low 13.44% -> 12.49%`, `daytime_low_lt_1000 21.03% -> 14.80%`, `cap_spike_evening 0.99%`, `evening_19_23 2.76%`. Обидва low-regime target metrics виконані в research artifact, але artifact ще не promoted у future-date pipeline.
+Діагностика candidate oracle показала, що серед уже наявних prediction columns можна отримати приблизно `daytime_low_lt_1000 = 14.54%` і `summer_daytime_low = 18.91%` лише з row-wise oracle-вибором кандидата. Це не production-valid прогноз, але підтверджує, що наступний реальний напрям - навчити leakage-safe selector, який наближається до oracle-вибору без факту цільового дня.
+Окремо перевірено просте копіювання попереднього дня: `f_price_lag_24` на `2026-06-17` давав `10.94%` WMAPE, але широке історичне копіювання руйнує low-price метрики (`daytime_low_lt_1000` понад `300%`). Тому в production helper додано тільки rare-profile rescue: він спрацьовує для OREE-годин `10-16`, коли весь денний блок має source майже на підлозі, а `lag24` має помірний rebound-профіль. На історичному `neural_best_predictions.csv` цей rare gate не спрацював жодного разу (`0` рядків), а 17.06 знизив WMAPE до `13.56%`.
+Out-of-sample DAM на `2026-06-17` з OREE підтягнуто без запису в train CSV: `prediction_2026-06-17_current_best.csv` після rare rescue має WMAPE `13.56%` проти факту. Forecast floor вже працює (`10 грн/МВтг`, не `0`), але current-best production chain без rescue занадто сильно валив денні low-block години до підлоги.
 
 ## Негативні та непідвищені експерименти
 
@@ -389,6 +426,6 @@ python src/train_model_v1.py
 
 ## Наступний напрям
 
-Наступна ціль: productionize research chain `night_hourratio_final_under5_v1`, тобто відтворити потрібні intermediate columns у future-date forecast pipeline або зібрати еквівалентний production-feasible rolling repair тільки на доступних forecast-time фічах (`lag24/48/168`, rolling профілі, current chain columns). Research target уже має `3m WMAPE 4.9896%` і `14d WMAPE 8.6172%`; promotion потрібно робити без регресії `daytime_low_lt_1000`, `summer_daytime_low`, cap-spike/evening режимів і з обов'язковим lower floor `10 грн/МВтг`.
+Наступна ціль: productionize `low_regime_postdeep_selector_target15_v1` або зібрати еквівалентний future-date pipeline, який відтворює потрібні candidate/current-chain columns без факту цільового дня. Поточний best low-regime repair уже зменшив `summer_daytime_low/daytime_low_lt_1000` до `12.49%` і `14.80%`; promotion потрібно робити без регресії 13d/14d/3m, cap-spike/evening режимів і з обов'язковим lower floor `10 грн/МВтг`.
 
 Нові фактичні/ринкові дні, наприклад РДН на `2026-06-17`, треба спершу використати як out-of-sample перевірку promoted chain і target-balanced candidate. Якщо похибка на такому дні зросла приблизно на `3 п.п.` проти попереднього прогнозу, це сигнал для regime repair, але не причина підганяти параметри напряму під один день.

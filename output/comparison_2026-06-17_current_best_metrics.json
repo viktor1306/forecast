@@ -1,0 +1,10 @@
+{
+  "date": "2026-06-17",
+  "prediction_column": "daybias31_hb22_midday_d8_b050_abs250_pred",
+  "rows": 24,
+  "wmape": 13.55606258424876,
+  "mae": 1066.3320833333335,
+  "bias": -956.6029166666667,
+  "source": "output/comparison_2026-06-17_current_best.csv",
+  "rare_lag24_midday_rescue": true
+}

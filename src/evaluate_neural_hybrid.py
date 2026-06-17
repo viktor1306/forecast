@@ -87,6 +87,7 @@ def calculate_metrics(predictions, pred_col="hybrid_pred"):
     end_ts = frame["datetime"].max()
     start_3m = end_ts - pd.DateOffset(months=3)
     start_14d = end_ts - pd.Timedelta(days=14)
+    start_13d = end_ts - pd.Timedelta(days=13)
 
     metrics = {
         "prediction_column": pred_col,
@@ -98,6 +99,7 @@ def calculate_metrics(predictions, pred_col="hybrid_pred"):
         "all_available": _metric_block(frame, pred_col),
         "last_3m": _metric_block(frame[frame["datetime"] >= start_3m], pred_col),
         "last_14d": _metric_block(frame[frame["datetime"] >= start_14d], pred_col),
+        "last_13d": _metric_block(frame[frame["datetime"] >= start_13d], pred_col),
         "by_hour": {},
         "by_price_bin": {},
         "regimes": {},

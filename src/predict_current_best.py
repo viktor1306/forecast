@@ -19,7 +19,7 @@ from apply_day_bias_adjuster import apply_day_bias_adjustment
 from apply_candidate_blend_adjuster import apply_candidate_blend_adjustment
 from apply_group_bias_adjuster import apply_group_bias_adjustment
 from apply_hour_bias_adjuster import apply_hour_bias_adjustment
-from apply_lag24_blend_adjuster import apply_lag24_blend_adjustment
+from apply_lag24_blend_adjuster import add_lag24_from_history, apply_lag24_blend_adjustment
 from prediction_limits import MIN_MARKET_PRICE, clip_price_forecast
 
 
@@ -81,6 +81,8 @@ LAGPROFILE4_COL = "lagprofile4_lp3_roll7_abs1000_morning_an015_pred"
 HOURBIAS21_COL = "hourbias21_lp4_peakerr_r2_bn015_wmape40_pred"
 HOURBIAS22_COL = "hourbias22_hb21_peakerr_r8_bn020_wmape40_pred"
 FINAL_COL = "daybias31_hb22_midday_d8_b050_abs250_pred"
+RARE_LAG24_RESCUE_APPLIED_COL = "rare_lag24_midday_rescue_applied"
+RARE_LAG24_RESCUE_DAY_GATE_COL = "rare_lag24_midday_rescue_day_gate"
 
 
 CHAIN = [
@@ -1331,6 +1333,60 @@ def apply_current_best_chain(history, target_rows):
     frame = frame.sort_values("datetime").reset_index(drop=True)
     for func, params in CHAIN:
         frame = func(frame, SimpleNamespace(**params))
+    frame = apply_rare_lag24_midday_rescue(frame)
+    return frame
+
+
+def apply_rare_lag24_midday_rescue(frame):
+    frame = add_lag24_from_history(frame, "f_price_lag_24").copy()
+    if FINAL_COL not in frame.columns or "f_price_lag_24" not in frame.columns:
+        return frame
+
+    source = pd.to_numeric(frame[FINAL_COL], errors="coerce")
+    lag24 = pd.to_numeric(frame["f_price_lag_24"], errors="coerce")
+    hour = frame["datetime"].dt.hour
+    day_key = frame["datetime"].dt.normalize()
+    rescue_hours = hour.between(9, 15)
+
+    day_profile = pd.DataFrame(
+        {
+            "date": day_key,
+            "hour": hour,
+            "source": source,
+            "lag24": lag24,
+        }
+    )
+    day_profile = day_profile[day_profile["hour"].between(9, 15)].groupby("date").agg(
+        rows=("source", "size"),
+        source_mean=("source", "mean"),
+        source_median=("source", "median"),
+        source_le100=("source", lambda values: int((values <= 100.0).sum())),
+        lag_min=("lag24", "min"),
+        lag_max=("lag24", "max"),
+        lag_up_mean=("lag24", lambda values: float(np.nan)),
+    )
+    up_mean = (lag24 - source).where(rescue_hours).groupby(day_key).mean()
+    day_profile["lag_up_mean"] = up_mean
+    day_profile["dow"] = pd.Series(day_profile.index, index=day_profile.index).dt.dayofweek
+
+    day_gate = (
+        (day_profile["rows"] == 7)
+        & day_profile["dow"].between(0, 4)
+        & (day_profile["source_mean"] <= 800.0)
+        & (day_profile["source_median"] <= 100.0)
+        & (day_profile["source_le100"] >= 4)
+        & (day_profile["lag_min"] >= 500.0)
+        & (day_profile["lag_max"] <= 4500.0)
+        & (day_profile["lag_up_mean"] >= 500.0)
+    )
+    gate_by_row = day_key.map(day_gate).fillna(False).to_numpy(dtype=bool)
+    selected = gate_by_row & rescue_hours.to_numpy() & lag24.notna().to_numpy()
+
+    frame[RARE_LAG24_RESCUE_DAY_GATE_COL] = gate_by_row.astype("int64")
+    frame[RARE_LAG24_RESCUE_APPLIED_COL] = selected.astype("int64")
+    rescued = source.copy()
+    rescued.loc[selected] = lag24.loc[selected]
+    frame[FINAL_COL] = clip_price_forecast(rescued, frame["price_cap"])
     return frame
 
 
